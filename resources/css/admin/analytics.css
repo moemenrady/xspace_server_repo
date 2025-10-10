@@ -1,0 +1,22 @@
+:root {
+  --bg: #ffffff;                 /* خلفية رئيسية (ثيم أبيض) */
+  --text: #0b0b0c;               /* نص أسود */
+  --muted: rgba(11,11,12,0.6);
+  --prime: #E6C7FF;              /* اللون الأساسي */
+  --card-bg: #ffffff;            /* بطاقات بيضاء مع ظل خفيف */
+  --glass: rgba(230,199,255,0.08); /* لمسات لامعة */
+}
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.card {
+  background: var(--card-bg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-radius: 1rem;
+}
+
+.highlight {
+  color: var(--prime);
+}

@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\ImportantProduct;
+use App\Models\Product;
+use DB;
+use Illuminate\Http\Request;
+
+class ProductController extends Controller
+{
+  public function index()
+  {
+    $products = Product::all();
+    $countProducts = $products->count();
+    $countItems = $products->sum('quantity');
+
+    return view('products.index', compact('products', 'countProducts', 'countItems'));
+  }
+
+
+
+  public function create()
+  {
+    return view('products.create');
+  }
+  public function createImportant()
+  {
+
+    $importantProducts = ImportantProduct::with('product')->latest()->paginate(20);
+    // $products not mandatory here (we use AJAX search), لكن لو بدك تمرر:
+    // $products = \App\Models\Product::take(30)->get();
+
+    return view('managment.changes.important_products.create', compact('importantProducts'));
+
+  }public function storeImportant(Request $request)
+{
+    $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'product_id' => 'required|exists:products,id',
+    ]);
+
+    // التحقق إذا الاسم موجود بالفعل
+    $nameExists = ImportantProduct::where('name', $data['name'])->exists();
+    if ($nameExists) {
+        return redirect()->back()->with('error', 'هذا الاسم مرتبط بمنتج مهم بالفعل.');
+    }
+
+    // التحقق إذا المنتج مرتبط بالفعل
+    $productExists = ImportantProduct::where('product_id', $data['product_id'])->exists();
+    if ($productExists) {
+        return redirect()->back()->with('error', 'هذا المنتج موجود بالفعل كمنتج مهم.');
+    }
+
+    // إنشاء المنتج المهم
+    ImportantProduct::create([
+        'product_id' => $data['product_id'],
+        'name' => $data['name'],
+    ]);
+
+    return redirect()->back()->with('success', 'تم حفظ المنتج المهم بنجاح.');
+}
+
+  public function addQuantityPage()
+  {
+    return view('products.add-quantity');
+  }
+  public function store(Request $request)
+  {
+    $request->validate([
+      'name' => 'required|string|max:255',
+      'price' => 'required|numeric',
+      'cost' => 'required|numeric',
+      'quantity' => 'required|integer|min:0',
+    ]);
+    $exists = Product::where('name', $request->name)->exists();
+
+
+    if ($exists) {
+      return redirect()->back()->with('error', 'هذا المنتج موجود في المخزن ❕');
+    } else {
+      Product::create($request->all());
+      return redirect()->back()->with('success', 'تمت إضافة المنتج بنجاح ✅');
+
+    }
+  }
+  public function addQuantity(Request $request, $id)
+  {
+    $request->validate([
+      'quantity' => 'required|integer|min:1',
+    ]);
+
+    $product = Product::findOrFail($id);
+    $product->quantity += $request->quantity;
+    $product->save();
+
+    return redirect()->route('products.index')->with('success', 'تمت إضافة الكمية بنجاح ✅');
+  }
+  public function search(Request $request)
+  {
+    $query = $request->get('query');
+
+    $results = Product::where('name', 'LIKE', "%{$query}%")
+      ->orWhere('id', $query)
+      ->select('id', 'name', 'price', 'cost', 'quantity') // هات اللي محتاجه
+      ->limit(10)
+      ->get();
+
+    return response()->json($results);
+  }
+
+}
