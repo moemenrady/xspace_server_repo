@@ -161,104 +161,138 @@ tbody tr:hover { transform: translateY(-3px); background: rgba(255,247,240,0.6);
   </table>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function(){
-  const searchBox = document.getElementById('searchBox');
-  const statusCheckboxes = Array.from(document.querySelectorAll('.status-filter'));
-  const hallFilter = document.getElementById('hallFilter');
-  const tableBody = document.getElementById('bookingTable');
-  const showRouteTemplate = @json(route('bookings.show', ['id' => ':id']));
+<script>document.addEventListener('DOMContentLoaded', function() {
+            const searchBox = document.getElementById('searchBox');
+            const statusCheckboxes = Array.from(document.querySelectorAll('.status-filter'));
+            const hallFilter = document.getElementById('hallFilter');
+            const tableBody = document.getElementById('bookingTable');
+            const showRouteTemplate = @json(route('bookings.show', ['id' => ':id']));
 
-  function escapeHtml(unsafe) {
-    if (unsafe == null) return '';
-    return String(unsafe)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#039;');
-  }
+            function escapeHtml(unsafe) {
+                if (unsafe == null) return '';
+                return String(unsafe)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
 
-  function badgeClass(status) {
-    switch(status) {
-      case 'scheduled': return 'scheduled';
-      case 'due': return 'due';
-      case 'in_progress': return 'in_progress';
-      case 'finished': return 'finished';
-      case 'cancelled': return 'cancelled';
-      default: return '';
-    }
-  }
+            function badgeClass(status) {
+                switch (status) {
+                    case 'scheduled':
+                        return 'scheduled';
+                    case 'due':
+                        return 'due';
+                    case 'in_progress':
+                        return 'in_progress';
+                    case 'finished':
+                        return 'finished';
+                    case 'cancelled':
+                        return 'cancelled';
+                    default:
+                        return '';
+                }
+            }
 
-  function renderRows(data) {
-    tableBody.innerHTML = '';
-    if (!data || data.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="7" class="no-results">❌ لا توجد نتائج</td></tr>`;
-      return;
-    }
+            // أسماء الأيام بالعربية، getDay() => 0 = الأحد ... 6 = السبت
+            const weekdayNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-    data.forEach((b, i) => {
-      const tr = document.createElement('tr');
-      tr.classList.add('row-animate');
-      // استخدم data-label عشان responsive يتحول لكروت
-      tr.innerHTML = `
+            function formatDateWithWeekday(isoDateStr) {
+                if (!isoDateStr) return '';
+                const d = new Date(isoDateStr);
+                if (isNaN(d)) return '';
+                const weekday = weekdayNames[d.getDay()] || '';
+                // تاريخ بصيغة أرقام لاتينية DD/MM/YYYY
+                const dd = String(d.getDate()).padStart(2, '0');
+                const mm = String(d.getMonth() + 1).padStart(2, '0');
+                const yyyy = d.getFullYear();
+                const datePart = `${dd}/${mm}/${yyyy}`;
+                return `${weekday} ${datePart}`;
+            }
+
+            function renderRows(data) {
+                tableBody.innerHTML = '';
+                if (!data || data.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="7" class="no-results">❌ لا توجد نتائج</td></tr>`;
+                    return;
+                }
+
+                data.forEach((b, i) => {
+                    const tr = document.createElement('tr');
+                    tr.classList.add('row-animate');
+
+                    // حساب الوقت والتاريخ بصيغة مناسبة
+                    const startTime = (b.start_at) ? new Date(b.start_at).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : '-';
+                    const endTime = (b.end_at) ? new Date(b.end_at).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : '-';
+                    const dateWithWeekday = formatDateWithWeekday(b
+                    .start_at); // مثال: "الثلاثاء ١٤/١٠/٢٠٢٥" أو بصيغة ar-EG
+
+                    tr.innerHTML = `
         <td data-label="العنوان">${escapeHtml(b.title)}</td>
         <td data-label="القاعة">${escapeHtml(b.hall_name)}</td>
         <td data-label="العميل">${escapeHtml(b.client_name)}</td>
-        <td data-label="من">${new Date(b.start_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
-        <td data-label="إلى">${new Date(b.end_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>
-        <td data-label="التاريخ">${new Date(b.start_at).toLocaleDateString()}</td>
-        <td data-label="الحالة"><span class="badge ${badgeClass(b.status)}">${b.status}</span></td>
+        <td data-label="من">${startTime}</td>
+        <td data-label="إلى">${endTime}</td>
+        <td data-label="التاريخ">${escapeHtml(dateWithWeekday)}</td>
+        <td data-label="الحالة"><span class="badge ${badgeClass(b.status)}">${escapeHtml(b.status)}</span></td>
       `;
 
-      tr.addEventListener('click', () => {
-        const url = showRouteTemplate.replace(':id', encodeURIComponent(b.id));
-        window.location.href = url;
-      });
+                    tr.addEventListener('click', () => {
+                        const url = showRouteTemplate.replace(':id', encodeURIComponent(b.id));
+                        window.location.href = url;
+                    });
 
-      // تأخير خفيف للانتقال لتأثير متدرج على السطر
-      tr.style.animationDelay = `${i * 25}ms`;
+                    // تأخير خفيف للانتقال لتأثير متدرج على السطر
+                    tr.style.animationDelay = `${i * 25}ms`;
 
-      tableBody.appendChild(tr);
-    });
-  }
+                    tableBody.appendChild(tr);
+                });
+            }
 
-  function fetchBookings() {
-    const q = searchBox.value.trim();
-    const selectedStatuses = statusCheckboxes.filter(cb => cb.checked).map(cb => cb.value);
-    const hall = hallFilter.value;
+            function fetchBookings() {
+                const q = searchBox.value.trim();
+                const selectedStatuses = statusCheckboxes.filter(cb => cb.checked).map(cb => cb.value);
+                const hall = hallFilter.value;
 
-    const params = new URLSearchParams();
-    if (q) params.append('q', q);
-    selectedStatuses.forEach(s => params.append('statuses[]', s));
-    if (hall) params.append('halls[]', hall);
+                const params = new URLSearchParams();
+                if (q) params.append('q', q);
+                selectedStatuses.forEach(s => params.append('statuses[]', s));
+                if (hall) params.append('halls[]', hall);
 
-    tableBody.innerHTML = `<tr><td colspan="7" class="text-center p-3">⏳ جاري التحميل...</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center p-3">⏳ جاري التحميل...</td></tr>`;
 
-    fetch("{{ route('bookings.ajaxSearch') }}?" + params.toString())
-      .then(res => {
-        if (!res.ok) throw new Error('Network error');
-        return res.json();
-      })
-      .then(data => renderRows(data))
-      .catch(err => {
-        console.error(err);
-        tableBody.innerHTML = `<tr><td colspan="7" class="text-center p-3">⚠️ حدث خطأ، حاول مرة أخرى</td></tr>`;
-      });
-  }
+                fetch("{{ route('bookings.ajaxSearch') }}?" + params.toString())
+                    .then(res => {
+                        if (!res.ok) throw new Error('Network error');
+                        return res.json();
+                    })
+                    .then(data => renderRows(data))
+                    .catch(err => {
+                        console.error(err);
+                        tableBody.innerHTML =
+                            `<tr><td colspan="7" class="text-center p-3">⚠️ حدث خطأ، حاول مرة أخرى</td></tr>`;
+                    });
+            }
 
-  // debounce
-  let timer = null;
-  searchBox.addEventListener('keyup', function(){
-    clearTimeout(timer);
-    timer = setTimeout(fetchBookings, 250);
-  });
+            // debounce
+            let timer = null;
+            searchBox.addEventListener('keyup', function() {
+                clearTimeout(timer);
+                timer = setTimeout(fetchBookings, 250);
+            });
 
-  statusCheckboxes.forEach(cb => cb.addEventListener('change', fetchBookings));
-  hallFilter.addEventListener('change', fetchBookings);
+            statusCheckboxes.forEach(cb => cb.addEventListener('change', fetchBookings));
+            hallFilter.addEventListener('change', fetchBookings);
 
-  // initial load
-  fetchBookings();
-});
+            // initial load
+            fetchBookings();
+        });
 </script>
 @endsection

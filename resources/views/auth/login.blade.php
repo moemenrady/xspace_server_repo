@@ -277,11 +277,6 @@
             <h2 style="margin:0; font-size:20px; font-weight:700">تسجيل دخول</h2>
             <div class="muted" style="font-size:13px">أدخل بياناتك</div>
           </div>
-
-          <div class="links-row">
-            <a href="#" class="link-muted">مساعدة</a>
-            <a href="#" class="link-muted">نسيت كلمة السر؟</a>
-          </div>
         </div>
 
         <div class="glass-card">

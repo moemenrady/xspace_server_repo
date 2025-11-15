@@ -29,174 +29,108 @@
             <!-- بيانات العميل -->
             <div class="section">
                 <h3>👤 بيانات العميل</h3>
-                <div class="box">
-                    <p><strong>الاسم:</strong> {{ $booking->client->name }}</p>
-                    <p><strong>الموبايل:</strong> {{ $booking->client->phone }}</p>
+                <div class="client-info">
+                    <span>🆔 {{ $booking->client->id }}</span>
+                    <span>👤 {{ $booking->client->name }}</span>
+                    <span>📞 {{ $booking->client->phone }}</span>
+                    <a href="{{ route('clients.edit', $booking->client->id) }}" class="edit-btn" title="تعديل بيانات العميل">✏️
+                        تعديل</a>
                 </div>
-            </div>
 
-            <!-- بيانات القاعة -->
-            <div class="section">
-                <h3>🏛️ القاعة</h3>
-                <div class="box">
-                    <p><strong>اسم القاعة:</strong> {{ $booking->hall->name }}</p>
-                    <p><strong>الحد الأدنى:</strong> {{ $booking->min_capacity_snapshot }} فرد</p>
-                </div>
             </div>
-
             <!-- بيانات الحجز -->
             <div class="section">
                 <h3>📅 تفاصيل الحجز</h3>
                 <div class="box">
-                    <p><strong>العنوان:</strong> {{ $booking->title }}</p>
+                    <p><strong>قاعة:</strong> {{ $booking->hall->name }}</p>
                     <p><strong>الحضور:</strong> {{ $booking->attendees }} فرد</p>
-                    <p><strong>من:</strong> {{ \Carbon\Carbon::parse($booking->start_at)->format('Y-m-d h:i A') }}</p>
-                    <p><strong>الى:</strong> {{ \Carbon\Carbon::parse($booking->end_at)->format('Y-m-d h:i A') }}</p>
+                    <div class="booking-time">
+                     @php
+                        $statuses = [
+                            'scheduled' => '⏳ لم يبدأ بعد',
+                            'due' => '📌 موعده الآن',
+                            'in_progress' => '▶️ جاري',
+                            'finished' => '✅ منتهي',
+                            'cancelled' => '❌ ملغي',
+                        ];
+                    @endphp
+                        <div class="time-item">
+                            <span class="label">من:</span>
+                            <span
+                                class="value">{{ \Carbon\Carbon::parse($booking->start_at)->format('Y-m-d h:i A') }}</span>
+                        </div>
 
-                    <p><strong>الحالة:</strong>
-                        @php
-                            $statuses = [
-                                'scheduled' => '⏳ لم يبدأ بعد',
-                                'due' => '📌 موعده الآن',
-                                'in_progress' => '▶️ جاري',
-                                'finished' => '✅ منتهي',
-                                'cancelled' => '❌ ملغي',
-                            ];
-                        @endphp
-                        <span class="badge">{{ $statuses[$booking->status] ?? $booking->status }}</span>
-                    </p>
+                        <div class="time-item">
+                            <span class="label">إلى:</span>
+                            <span
+                                class="value">{{ \Carbon\Carbon::parse($booking->end_at)->format('Y-m-d h:i A') }}</span>
+                        </div>
 
-                    @if (in_array($booking->status, ['in_progress', 'finished']) && $booking->real_start_at)
-                        <p><strong>بداية فعلية:</strong>
-                            {{ \Carbon\Carbon::parse($booking->real_start_at)->format('Y-m-d h:i A') }}
-                        </p>
-                    @endif
+                        @if (in_array($booking->status, ['in_progress', 'finished']) && $booking->real_start_at)
+                            <div class="time-item highlight">
+                                <span class="label">🚀 بداية فعلية:</span>
+                                <span
+                                    class="value">{{ \Carbon\Carbon::parse($booking->real_start_at)->format('Y-m-d h:i A') }}</span>
+                            </div>
+                        @endif
 
-                    @if ($booking->real_end_at)
-                        <p><strong>نهاية فعلية:</strong>
-                            {{ \Carbon\Carbon::parse($booking->real_end_at)->format('Y-m-d h:i A') }}</p>
-                    @endif
+                        @if ($booking->real_end_at)
+                            <div class="time-item">
+                                <span class="label">🏁 نهاية فعلية:</span>
+                                <span
+                                    class="value">{{ \Carbon\Carbon::parse($booking->real_end_at)->format('Y-m-d h:i A') }}</span>
+                            </div>
+                        @endif
 
-                    @if (!empty($actual_duration))
-                        @php
-                            $totalMin = intval($actual_duration);
-                            $hours = intdiv($totalMin, 60);
-                            $mins = $totalMin % 60;
-
-                            $parts = [];
-
-                            // دالة مساعدة صغنونة للثواني (دقيقة/دقايق)
-                            $minutesLabel = function ($n) {
-                                if ($n == 1) {
-                                    return 'دقيقة';
-                                }
-                                if ($n == 2) {
-                                    return 'دقيقتان';
-                                }
-                                return 'دقائق';
-                            };
-
-                            // دالة للساعة (واحد/اتنين/ساعات)
-                            $hoursLabel = function ($n) {
-                                if ($n == 1) {
-                                    return 'ساعة';
-                                }
-                                if ($n == 2) {
-                                    return 'ساعتان';
-                                }
-                                return 'ساعات';
-                            };
-
-                            if ($hours > 0) {
-                                // عند وجود ساعات
-                                $hText = $hours == 1 ? 'ساعة' : ($hours == 2 ? 'ساعتان' : $hours . ' ' . 'ساعات');
-
-                                if ($mins === 0) {
-                                    $display = $hText;
+                        @if (!empty($actual_duration))
+                            @php
+                                $totalMin = intval($actual_duration);
+                                $hours = intdiv($totalMin, 60);
+                                $mins = $totalMin % 60;
+                                if ($hours > 0) {
+                                    $display = $hours . ' س ' . ($mins > 0 ? $mins . ' د' : '');
                                 } else {
-                                    // تعامل خاص للـ 15 و 30 (ربع / نص)
-                                    if ($mins === 15) {
-                                        // مثال: "ساعة وربع" أو "2 ساعات وربع"
-                                        $display = $hText . ' وربع';
-                                    } elseif ($mins === 30) {
-                                        $display = $hText . ' ونصف';
-                                    } else {
-                                        // دقائق عادية
-                                        $mLabel = $minutesLabel($mins);
-                                        $display = $hText . ' و' . $mins . ' ' . $mLabel;
-                                    }
+                                    $display = $mins . ' د';
                                 }
-                            } else {
-                                // أقل من ساعة: دقائق فقط
-                                if ($mins === 15) {
-                                    $display = 'ربع ساعة';
-                                } elseif ($mins === 30) {
-                                    $display = 'نصف ساعة';
-                                } else {
-                                    $mLabel = $minutesLabel($mins);
-                                    $display = $mins . ' ' . $mLabel;
-                                }
-                            }
-                        @endphp
+                            @endphp
+                            <div class="time-item duration">
+                                <span class="label">⏱️ المدة:</span>
+                                <span class="value">{{ $display }}</span>
+                                <span class="status">{{ $statuses[$booking->status] ?? $booking->status }}</span>
+                            </div>
+                        @endif
+                    </div>
 
-                        <p><strong>المدة الفعلية:</strong> {{ $display }}</p>
-                    @endif
 
+                    @php
+                        $statuses = [
+                            'scheduled' => '⏳ لم يبدأ بعد',
+                            'due' => '📌 موعده الآن',
+                            'in_progress' => '▶️ جاري',
+                            'finished' => '✅ منتهي',
+                            'cancelled' => '❌ ملغي',
+                        ];
+                    @endphp
                 </div>
             </div>
 
             <!-- الدفع -->
             <div class="section">
-                <h3>💰 الحساب</h3>
-                <div class="box">
-                    <p><strong>إجمالي متوقع:</strong>
-                        <span class="price" style="color:green;">{{ number_format($booking->estimated_total, 2) }}
-                            جنيه</span>
-                    </p>
 
-                    <p><strong>سعر الساعة:</strong> {{ number_format($bookingHourPrice, 2) }} جنيه</p>
-
-                    <p><strong>سعر الساعات:</strong>
-                        <span class="price-hours">{{ number_format($hours_total ?? 0, 2) }} جنيه</span>
-                    </p>
-
-                    <p><strong>سعر المشتريات:</strong>
-                        <span class="price-purchases">{{ number_format($purchases_total ?? 0, 2) }} جنيه</span>
-                    </p>
-
-                    <p><strong>الإجمالي الفعلي حتى الآن:</strong>
-                        <span class="price" style="color:red; font-weight:800;">
-                            {{ number_format($combined_actual ?? 0, 2) }} جنيه
-                        </span>
-                    </p>
-
-                    <p><strong>الدفعة المقدمة:</strong>
-                        @if (($deposit_paid ?? 0) > 0)
-                            ✅ {{ number_format($deposit_paid, 2) }} جنيه
-                        @else
-                            ❌ 0.00 جنيه
-                        @endif
-                    </p>
-
-                    <p><strong>المتبقي للدفع:</strong>
-                        {{ number_format($remaining ?? 0, 2) }} جنيه
-                        @if (!empty($remaining_label ?? null))
-                            <span style="color:#777; font-style:italic; margin-left:8px;">{{ $remaining_label }}</span>
-                        @endif
-                    </p>
-                </div>
             </div>
 
             <!-- المشتريات -->
             <div class="section">
                 <h3>🛒 المشتريات</h3>
-                <div class="box selected-products">
+                <button id="openPurchasesModal" class="box selected-products purchases-btn" type="button">
                     @forelse ($purchases as $purchase)
-                        <p>{{ $purchase->product->name }} × {{ $purchase->quantity }}</p>
+                        <p data-id="{{ $purchase->product_id }}">
+                            {{ $purchase->product->name }} × {{ $purchase->quantity }}
+                        </p>
                     @empty
                         <p>لا يوجد مشتريات</p>
                     @endforelse
-                </div>
+                </button>
 
                 @if ($booking->status === 'in_progress')
                     <div class="products-list">
@@ -214,11 +148,89 @@
                     </div>
                 @endif
             </div>
+            <h3>💰 الحساب</h3>
+            <div class="box">
+                <p><strong>إجمالي متوقع:</strong>
+                    <span class="price" style="color:green;">{{ number_format($booking->estimated_total, 2) }}
+                        جنيه</span>
+                </p>
 
+                <p><strong>سعر الساعة:</strong> {{ number_format($bookingHourPrice, 2) }} جنيه</p>
+
+                <p><strong>سعر الساعات:</strong>
+                    <span class="price-hours">{{ number_format($hours_total ?? 0, 2) }} جنيه</span>
+                </p>
+
+                <p><strong>سعر المشتريات:</strong>
+                    <span class="price-purchases">{{ number_format($purchases_total ?? 0, 2) }} جنيه</span>
+                </p>
+
+                <p><strong>الإجمالي الفعلي حتى الآن:</strong>
+                    <span class="price" style="color:red; font-weight:800;">
+                        {{ number_format($combined_actual ?? 0, 2) }} جنيه
+                    </span>
+                </p>
+
+                <p><strong>الدفعة المقدمة:</strong>
+                    @if (($deposit_paid ?? 0) > 0)
+                        ✅ {{ number_format($deposit_paid, 2) }} جنيه
+                    @else
+                        ❌ 0.00 جنيه
+                    @endif
+                </p>
+
+                <p><strong>المتبقي للدفع:</strong></p>
+                <div
+                    style="
+                          background: #e8fbe8;
+                          border: 2px solid #38a169;
+                          color: #166534;
+                          padding: 10px 15px;
+                          border-radius: 10px;
+                          font-size: 1.2em;
+                          font-weight: bold;
+                          display: inline-block;
+                          margin-top: 5px;
+                      ">
+                    {{ number_format(max($remaining ?? 0, 0), 2) }} جنيه
+                    @if (!empty($remaining_label ?? null))
+                        <span style="color:#2f855a; font-style:italic; font-weight: normal; margin-left:8px;">
+                            {{ $remaining_label }}
+                        </span>
+                    @endif
+                </div>
+
+
+            </div>
             <!-- الأزرار حسب الحالة -->
             <div class="actions">
                 @if (in_array($booking->status, ['scheduled', 'due']))
                     <a href="{{ route('bookings.edit', $booking) }}" class="btn yellow">✏️ تعديل الميعاد</a>
+                    <form id="cancelForm-{{ $booking->id }}" action="{{ route('bookings.cancel', $booking) }}"
+                        method="POST" style="display:inline;">
+                        @csrf
+
+                        @php
+                            // اليوم/الشهر مع الساعة بنظام 12 ساعة (AM/PM)
+                            $startFormatted = \Carbon\Carbon::parse($booking->start_at)->format('j/n h:i A');
+                            $endFormatted = \Carbon\Carbon::parse($booking->end_at)->format('j/n h:i A');
+                        @endphp
+
+                        <button type="button" class="btn red"
+                            onclick="confirmCancelSimple({{ $booking->id }}, '{{ addslashes($booking->client->name) }}', '{{ $startFormatted }}', '{{ $endFormatted }}')">
+                            ❌ إلغاء الحجز
+                        </button>
+                    </form>
+
+                    <script>
+                        function confirmCancelSimple(id, clientName, startFormatted, endFormatted) {
+                            const message =
+                                `هل أنت متأكد من إلغاء الحجز للعميل: ${clientName}\nمن: ${startFormatted}\nإلى: ${endFormatted}\n\n(سيتم استرجاع أي مقدم إذا وُجد)`;
+                            if (confirm(message)) {
+                                document.getElementById(`cancelForm-${id}`).submit();
+                            }
+                        }
+                    </script>
 
                     <form action="{{ route('bookings.start', $booking) }}" method="POST" style="display:inline">
                         @csrf
@@ -233,12 +245,14 @@
                         <input type="hidden" name="booking" value="{{ $booking->id }}">
                         <input type="hidden" name="hours_total" id="hours_total"
                             value="{{ number_format($hours_total ?? 0, 2, '.', '') }}">
-                        <input type="hidden" name="purchases_total" id="purchases_total"
-                            value="{{ number_format($purchases_total ?? 0, 2, '.', '') }}">
+                        <input type="hidden" name="purchases_json" id="purchases_json" value="">
                         <input type="hidden" name="deposit_paid" id="deposit_paid"
                             value="{{ number_format($deposit_paid ?? 0, 2, '.', '') }}">
                         <input type="hidden" name="hourly_rate" id="hourly_rate"
                             value="{{ number_format($bookingHourPrice ?? 0, 2, '.', '') }}">
+                        <input type="hidden" name="remaining" id="remaining"
+                            value="{{ number_format($remaining ?? 0, 2, '.', '') }}">
+
                         <button type="submit" class="btn btn-danger">إنهاء الحساب</button>
                     </form>
                 @elseif($booking->status === 'finished')
@@ -284,6 +298,298 @@
             // deposit_paid يأتي من السيرفر كقيمة افتراضية، لا حاجة لتغييره هنا
         });
     </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let selectedProducts = []; // المنتجات المختارة مؤقتاً
+
+            // إنشاء الـ Snackbar container
+            let snackbar = document.createElement("div");
+            snackbar.id = "bookingProductsSnackbar";
+            snackbar.style.position = "fixed";
+            snackbar.style.bottom = "20px";
+            snackbar.style.right = "20px";
+            snackbar.style.background = "#333";
+            snackbar.style.color = "#fff";
+            snackbar.style.padding = "15px";
+            snackbar.style.borderRadius = "12px";
+            snackbar.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+            snackbar.style.zIndex = "99999";
+            snackbar.style.display = "none";
+            snackbar.style.minWidth = "250px";
+            snackbar.style.maxHeight = "60vh";
+            snackbar.style.overflowY = "auto";
+            document.body.appendChild(snackbar);
+
+            // زر مسح الكل
+            let clearBtn = document.createElement("span");
+            clearBtn.textContent = "❌";
+            clearBtn.style.cursor = "pointer";
+            clearBtn.style.float = "right";
+            clearBtn.style.marginBottom = "10px";
+            snackbar.appendChild(clearBtn);
+
+            clearBtn.addEventListener("click", () => {
+                selectedProducts = [];
+                updateSnackbarUI();
+            });
+
+            let list = document.createElement("div");
+            list.id = "selectedProductsList";
+            snackbar.appendChild(list);
+
+            let confirmBtn = document.createElement("button");
+            confirmBtn.textContent = "✅ تأكيد المشتريات";
+            confirmBtn.style.marginTop = "10px";
+            confirmBtn.className = "btn btn-success btn-sm w-100";
+            snackbar.appendChild(confirmBtn);
+
+            // تحديث واجهة الـ Snackbar
+            function updateSnackbarUI() {
+                list.innerHTML = "";
+                if (selectedProducts.length === 0) {
+                    snackbar.style.display = "none";
+                    return;
+                }
+
+                selectedProducts.forEach(p => {
+                    const prodName = document.querySelector(`.product-item[data-id="${p.product_id}"]`)
+                        ?.textContent || "منتج";
+                    const div = document.createElement("div");
+                    div.style.display = "flex";
+                    div.style.justifyContent = "space-between";
+                    div.style.alignItems = "center";
+                    div.style.marginBottom = "5px";
+
+                    let nameSpan = document.createElement("span");
+                    nameSpan.textContent = `${prodName} × ${p.qty}`;
+
+                    let minusBtn = document.createElement("button");
+                    minusBtn.textContent = "➖";
+                    minusBtn.className = "btn btn-sm btn-warning";
+                    minusBtn.style.marginLeft = "10px";
+
+                    minusBtn.addEventListener("click", () => {
+                        if (p.qty > 1) {
+                            p.qty -= 1;
+                        } else {
+                            selectedProducts = selectedProducts.filter(item => item.product_id !== p
+                                .product_id);
+                        }
+                        updateSnackbarUI();
+                    });
+
+                    div.appendChild(nameSpan);
+                    div.appendChild(minusBtn);
+                    list.appendChild(div);
+                });
+
+                snackbar.style.display = "block";
+            }
+
+            // التعامل مع أزرار المنتجات (داخل صفحة الحجز)
+            document.querySelectorAll(".product-item").forEach(btn => {
+                btn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const id = parseInt(this.dataset.id);
+                    const existing = selectedProducts.find(p => p.product_id === id);
+                    if (existing) {
+                        existing.qty += 1;
+                    } else {
+                        selectedProducts.push({
+                            product_id: id,
+                            qty: 1
+                        });
+                    }
+                    updateSnackbarUI();
+                });
+            });
+
+            // عند الضغط على تأكيد المشتريات
+            confirmBtn.addEventListener("click", function() {
+                if (selectedProducts.length === 0) return;
+
+                // نستخدم أول فورم كـ مرجع (كلها نفس الـ action)
+                const firstForm = document.querySelector(".invoiceForm");
+                if (!firstForm) return;
+
+                const allItems = selectedProducts.map(p => ({
+                    id: p.product_id,
+                    qty: p.qty
+                }));
+
+                firstForm.querySelector(".itemsInput").value = JSON.stringify(allItems);
+                firstForm.submit();
+
+                // فضي المصفوفة
+                selectedProducts = [];
+                updateSnackbarUI();
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const checkoutForm = document.getElementById('checkoutForm');
+
+            if (checkoutForm) {
+                checkoutForm.addEventListener('submit', function(e) {
+                    // منع الإرسال المؤقت عشان نجمع البيانات
+                    e.preventDefault();
+
+                    // اجمع المشتريات المعروضة داخل div.selected-products
+                    const purchaseLines = document.querySelectorAll('.selected-products p[data-id]');
+                    const purchases = [];
+
+                    purchaseLines.forEach(line => {
+                        const id = parseInt(line.dataset.id);
+                        const match = line.textContent.match(/×\s*(\d+)/);
+                        if (id && match) {
+                            const qty = parseInt(match[1]);
+                            purchases.push({
+                                id,
+                                qty
+                            });
+                        }
+                    });
+
+
+
+                    // حفظها في input hidden كـ JSON
+                    document.getElementById('purchases_json').value = JSON.stringify(purchases);
+
+                    // تحديث ساعات العمل
+                    const hoursSpan = document.querySelector('.price-hours');
+                    if (hoursSpan) {
+                        const hours = hoursSpan.textContent.replace(/[^\d.-]/g, '').trim();
+                        document.getElementById('hours_total').value = hours || 0;
+                    }
+
+                    // خلاص أرسل الفورم
+                    checkoutForm.submit();
+                });
+            }
+        });
+    </script>
+    <div class="modal fade" id="purchasesModal" tabindex="-1" aria-labelledby="purchasesModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header text-center position-relative">
+                    <h5 class="modal-title w-100 fw-bold" style="font-size: 1.3rem;">تعديل المشتريات</h5>
+                    <button type="button" class="btn-close position-absolute end-0 me-3" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="updatePurchasesForm">
+                        @csrf
+
+                        <div id="purchaseItemsContainer">
+                            @forelse ($purchases as $purchase)
+                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2"
+                                    data-id="{{ $purchase->id }}">
+                                    <span class="fw-bold">{{ $purchase->product->name }}</span>
+
+                                    <div class="d-flex align-items-center">
+                                        <button type="button"
+                                            class="btn btn-outline-secondary btn-sm decrease">-</button>
+                                        <input type="number" class="form-control mx-2 text-center quantity-input"
+                                            name="quantities[{{ $purchase->id }}]" value="{{ $purchase->quantity }}"
+                                            min="1" style="width:70px;">
+                                        <button type="button"
+                                            class="btn btn-outline-secondary btn-sm increase">+</button>
+                                    </div>
+
+                                    <button type="button" class="btn btn-danger btn-sm remove-purchase">❌</button>
+                                </div>
+                            @empty
+                                <p class="text-muted text-center">لا يوجد مشتريات</p>
+                            @endforelse
+                        </div>
+
+                        <div id="purchasesAlert" class="alert d-none mt-3"></div>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">💾 حفظ التعديلات</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const modalTrigger = document.getElementById('openPurchasesModal');
+            const form = document.getElementById('updatePurchasesForm');
+            const alertBox = document.getElementById('purchasesAlert');
+            let removedPurchases = [];
+
+            // فتح المودال
+            modalTrigger.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('purchasesModal'));
+                modal.show();
+            });
+
+            // أزرار + و -
+            document.querySelectorAll('.increase').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    let input = this.parentNode.querySelector('.quantity-input');
+                    input.value = parseInt(input.value) + 1;
+                });
+            });
+
+            document.querySelectorAll('.decrease').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    let input = this.parentNode.querySelector('.quantity-input');
+                    if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+                });
+            });
+
+            // ❌ حذف المنتج
+            document.querySelectorAll('.remove-purchase').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const row = this.closest('[data-id]'); // استخدم data-id
+                    const productId = row.dataset.id; // اقرأ من data-id
+                    removedPurchases.push(productId);
+                    row.remove(); // امسح العنصر من الواجهة
+                });
+            });
+
+
+
+            // 💾 حفظ التعديلات
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                let formData = new FormData(form);
+                formData.append('removed', JSON.stringify(removedPurchases));
+
+                fetch("{{ route('booking.purchases.update', $booking->id) }}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alertBox.className = 'alert alert-success';
+                            alertBox.textContent = '✅ تم تحديث المشتريات بنجاح';
+                            alertBox.classList.remove('d-none');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            throw new Error(data.message || 'حدث خطأ أثناء الحفظ');
+                        }
+                    })
+                    .catch(err => {
+                        alertBox.className = 'alert alert-danger';
+                        alertBox.textContent = '❌ ' + err.message;
+                        alertBox.classList.remove('d-none');
+                    });
+            });
+        });
+    </script>
 @endsection
 
 @section('style')
@@ -311,6 +617,43 @@
             display: flex;
             align-items: center;
             gap: 8px;
+        }
+
+        .client-info {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .client-info span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .client-info .edit-btn {
+            background: #007bff;
+            color: #fff;
+            text-decoration: none;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .client-info .edit-btn:hover {
+            background: #0056b3;
         }
 
         .snackbar.show {
@@ -342,6 +685,102 @@
             box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
             padding: 30px;
             animation: fadeInUp 0.6s ease;
+        }
+
+        .booking-time {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            font-family: "Cairo", sans-serif;
+        }
+
+        .time-item {
+            background: #fff;
+            border-radius: 10px;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1 1 120px;
+            min-width: 110px;
+            text-align: center;
+            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .time-item .label {
+            font-weight: 600;
+            color: #047857;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .time-item .value {
+            font-size: 14px;
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .time-item.highlight {
+            background: #ecfdf5;
+            border: 1px solid #6ee7b7;
+        }
+
+        .time-item.duration {
+            background: #eff6ff;
+            border: 1px solid #93c5fd;
+        }
+
+        .purchases-btn {
+            display: block;
+            width: 100%;
+            text-align: start;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-family: "Cairo", sans-serif;
+        }
+
+        .purchases-btn:hover {
+            background: #f8fafc;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+        .purchases-btn p {
+            margin: 0;
+            padding: 4px 0;
+            color: #1f2937;
+            font-size: 15px;
+        }
+
+        .purchases-btn p:first-child {
+            margin-top: 2px;
+        }
+
+        .purchases-btn:active {
+            transform: scale(0.98);
+            background: #f1f5f9;
+        }
+
+        .time-item .status {
+            margin-top: 4px;
+            background: #10b981;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: capitalize;
         }
 
 

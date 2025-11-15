@@ -60,6 +60,59 @@ class ProductController extends Controller
 
     return redirect()->back()->with('success', 'تم حفظ المنتج المهم بنجاح.');
 }
+public function updateImportant(Request $request, ImportantProduct $importantProduct)
+{
+    $data = $request->validate([
+        'name' => 'required|string|max:255',
+        'product_id' => 'nullable|exists:products,id',
+    ]);
+
+    // تحقق من الاسم المكرر (باستثناء نفسه)
+    $existsByName = ImportantProduct::where('name', $data['name'])
+        ->where('id', '!=', $importantProduct->id)
+        ->exists();
+    if ($existsByName) {
+        return redirect()->back()->with('error', 'هذا الاسم مستخدم بالفعل.');
+    }
+
+    // تحقق من المنتج المرتبط (باستثناء نفسه)
+    if (!empty($data['product_id'])) {
+        $existsByProduct = ImportantProduct::where('product_id', $data['product_id'])
+            ->where('id', '!=', $importantProduct->id)
+            ->exists();
+        if ($existsByProduct) {
+            return redirect()->back()->with('error', 'هذا المنتج مرتبط بالفعل بمنتج مهم آخر.');
+        }
+    }
+
+    // التحديث
+    $importantProduct->update([
+        'name' => $data['name'],
+        'product_id' => $data['product_id'] ?? $importantProduct->product_id,
+    ]);
+
+    return redirect()->back()->with('success', 'تم تحديث المنتج المهم بنجاح.');
+}
+public function update(Request $request, Product $product)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'price' => 'required|numeric|min:0',
+        'cost' => 'required|numeric|min:0',
+        'quantity' => 'required|integer|min:0',
+    ]);
+
+    $product->update($validated);
+
+    return response()->json(['status' => 'success', 'message' => 'Product updated successfully']);
+}
+
+public function show(Product $product)
+{
+    $importantProduct = ImportantProduct::where('product_id', $product->id)->first();
+
+    return view('products.show', compact('product', 'importantProduct'));
+}
 
   public function addQuantityPage()
   {

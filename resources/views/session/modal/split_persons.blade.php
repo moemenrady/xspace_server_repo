@@ -1,3 +1,4 @@
+
 <!-- Modal حساب منفصل -->
 <div class="modal fade animate__animated animate__zoomIn" id="splitSessionModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -64,7 +65,54 @@
             ✅ تأكيد الحساب المنفصل
           </button>
         </div>
+        <!-- عرض السعر النهائي عصري -->
+<div id="splitPriceBox" class="split-price-box mt-3 p-3 rounded-3 shadow-sm">
+  <div class="d-flex align-items-center justify-content-between">
+    <div>
+      <div class="small text-muted">الحساب المنفصل — ملخص</div>
+      <div class="h5 mb-0" id="splitPriceValue">0.00 جنيه</div>
+    </div>
+    <div class="text-end">
+      <div class="small text-muted">المشتريات</div>
+      <div id="splitItemsValue">0.00 جنيه</div>
+      <div class="small text-muted mt-1">حصة الساعات</div>
+      <div id="splitHoursValue">0.00 جنيه</div>
+    </div>
+  </div>
+  <div class="mt-2">
+    <small class="text-muted">يتم الحساب فورًا عند تعديل عدد الأفراد أو عدد المشتريات.</small>
+  </div>
+</div>
+
       </form>
     </div>
   </div>
 </div>
+<style>
+:root {
+  --theme: #37a92d; /* غيّرها لتطابق ثيمك */
+  --text-dark: #0b1320;
+}
+
+/* بطاقة السعر */
+.split-price-box {
+  background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
+  border-left: 6px solid var(--theme);
+  color: var(--text-dark);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+.split-price-box:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(13, 41, 57, 0.06);
+}
+
+/* القيم */
+#splitPriceValue {
+  color: var(--theme);
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+#splitItemsValue, #splitHoursValue {
+  font-weight: 700;
+}
+</style>

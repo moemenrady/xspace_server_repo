@@ -13,6 +13,7 @@ use App\Models\Shift;
 use App\Models\ShiftAction;
 use App\Services\ShiftService;
 use App\Support\InvoiceNumber;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +21,13 @@ use App\Models\SystemAction;
 use Schema;
 class InvoiceController extends Controller
 {
-
+    
+   public function index()
+  {
+    $invoices = Invoice::with('items')->get();
+    return view('invoices.index', compact('invoices'));
+  }
+    
   public function show(Invoice $invoice)
   {
     // صلاحيات: عرض الفاتورة للأدمن أو صاحب الفاتورة أو حسب policy
@@ -38,8 +45,168 @@ class InvoiceController extends Controller
     return view('invoices.show', compact('invoice', 'total', 'cost', 'profit'));
 
   }
+public function admin_show(Invoice $invoice)
+  {
+  $invoice->load(['items', 'user']); // تأكد أن relations موجودة
+
+    // حسابات ملخص
+    $total = $invoice->items->sum('total');
+    $cost = $invoice->items->sum('cost') * 1; // مجموع تكلفة الوحدات (cost * qty إذا مخزن غير مضروب)
+    // إذا لديك cost مخزن لكل item كمجموع، عدّل حسب الحاجة
+    $profit = $total - $cost;
+
+    return view('invoices.admin-show', compact('invoice', 'total', 'cost', 'profit'));
+
+  }
 
 
+ public function client_show(Invoice $invoice)
+{
+    // تحميل العلاقات المطلوبة
+    $invoice->load([
+        'client',
+        'items',
+        'booking' => function ($query) {
+            $query->with([
+                'hall', // تحميل قاعة الحجز أو أي علاقة مرتبطة
+            ]);
+        },
+    ]);
+
+    // ترتيب البنود حسب النوع
+    $groupedItems = [
+        'product' => $invoice->items->where('item_type', 'product'),
+        'subscription' => $invoice->items->where('item_type', 'subscription'),
+        'booking' => $invoice->items->where('item_type', 'booking'),
+        'session' => $invoice->items->where('item_type', 'session'),
+        'deposit' => $invoice->items->where('item_type', 'deposit'),
+    ];
+
+    // ✅ أي فاتورة فيها منتجات تظهر مشترياتها (تمت استعادتها)
+    $purchaseItems = collect();
+    if ($groupedItems['product']->isNotEmpty()) {
+        $purchaseItems = $groupedItems['product'];
+    }
+
+    // حساب الإجمالي الكلي
+    $totalAmount = $invoice->items->sum('total');
+
+    // نوع الفاتورة
+    $invoiceType = $invoice->type;
+
+    // بيانات إضافية لو نوعها deposit
+    $extraData = [];
+    if ($invoiceType === 'deposit') {
+        $extraData = [
+            'client_name' => $invoice->client->name ?? 'غير معروف',
+            'booking_date' => optional($invoice->booking)->date ?? '-',
+        ];
+    }
+
+    // التحقق من وجود مشتريات داخل فاتورة جلسة أو حجز
+    $isHasPurchase = false;
+    if (
+        in_array($invoiceType, ['booking', 'session']) &&
+        $invoice->items->where('item_type', 'product')->isNotEmpty()
+    ) {
+        $isHasPurchase = true;
+    }
+
+    // بيانات الحجز لو نوع الفاتورة booking
+    $bookingData = null;
+    $hourlyRate = null;
+    $actualDurationMinutes = null;
+    if ($invoiceType === 'booking' && $invoice->booking) {
+
+        $bookingData = $invoice->booking;
+
+        // التأكد إن القيم موجودة قبل الحساب
+        if (!empty($bookingData->duration_minutes) && !empty($bookingData->estimated_total)) {
+            $hours = $bookingData->duration_minutes / 60;
+            if ($hours > 0) {
+                $hourlyRate = $bookingData->estimated_total / $hours;
+            }
+        }
+        // حساب المدة الفعلية بالدقائق من real_start_at و real_end_at
+        if (!empty($bookingData->real_start_at) && !empty($bookingData->real_end_at)) {
+            $start = Carbon::parse($bookingData->real_start_at);
+            $end = Carbon::parse($bookingData->real_end_at);
+
+            $secondsDiff = abs($end->diffInSeconds($start, false));
+            $actualDurationMinutes = (int) round($secondsDiff / 60);
+        }
+    }
+
+    // بيانات الجلسة المأخوذة من invoice_item -> session
+    $sessionData = null;
+    if ($invoiceType === 'session') {
+        // نجيب أول item من نوع session
+        $sessionItem = $invoice->items->firstWhere('item_type', 'session');
+        if ($sessionItem && $sessionItem->session) {
+            $sessionData = $sessionItem->session;
+
+            // نحسب مدة الجلسة الفعلية لو فيها start/end
+            if (!empty($sessionData->start_time) && !empty($sessionData->end_time)) {
+                $start = Carbon::parse($sessionData->start_time);
+                $end = Carbon::parse($sessionData->end_time);
+                $sessionData->actual_duration_minutes = $end->diffInMinutes($start);
+            }
+        }
+    }
+
+    // تمرير كل البيانات إلى الواجهة
+    return view('invoices.client_show', [
+        'invoice' => $invoice,
+        'groupedItems' => $groupedItems,
+        'totalAmount' => $totalAmount,
+        'invoiceType' => $invoiceType,
+        'extraData' => $extraData,
+        'isHasPurchase' => $isHasPurchase,
+        'bookingData' => $bookingData,
+        'hourlyRate' => $hourlyRate,
+        'actualDurationMinutes' => $actualDurationMinutes,
+        'sessionData' => $sessionData,
+        'purchaseItems' => $purchaseItems, // ← تمت إعادتها للتمرير إلى الواجهة
+    ]);
+}
+
+
+
+  public function ajaxSearch(Request $request)
+  {
+    $query = Invoice::query()->with('client')->where('total', '>', 0);
+
+    if ($q = $request->query('q')) {
+      $query->whereHas('client', fn($q2) => $q2->where('name', 'like', "%{$q}%"))
+        ->orWhere('invoice_number', 'like', "%{$q}%");
+    }
+
+    if ($types = $request->query('types')) {
+      $types = explode(',', $types);
+      $query->whereIn('type', $types);
+    }
+
+    if ($from = $request->query('from')) {
+      $query->whereDate('updated_at', '>=', $from);
+    }
+    if ($to = $request->query('to')) {
+      $query->whereDate('updated_at', '<=', $to);
+    }
+
+    return $query->orderByDesc('updated_at')->limit(50)->get()->map(function ($inv) {
+
+      return [
+
+        'id' => $inv->id,
+        'invoice_number' => $inv->invoice_number,
+        'client_name' => $inv->client->name ?? null,
+        'type' => $inv->type,
+        'total' => $inv->total,
+        'created_at' => $inv->created_at,
+        'updated_at' => $inv->updated_at,
+      ];
+    });
+  }
 
 
   // لو عايز المعاينة بدون حفظ (يعتمد على نفس فورم الداتا)
@@ -352,70 +519,70 @@ class InvoiceController extends Controller
   }
 
 
-public function clientInvoices(Request $request, $clientId)
-{
+  public function clientInvoices(Request $request, $clientId)
+  {
     $client = Client::findOrFail($clientId);
     $perPage = 20;
 
     $useModel = class_exists(Invoice::class);
     if ($useModel) {
-        // لا نطلب payments لأن الموديل ما فيه العلاقة
-        $invoicesQuery = Invoice::with([
-            'booking',
-            'items',
-            // 'payments' --> محذوف لأن العلاقة مفقودة في الموديل
-        ])->where('client_id', $client->id)
-          ->orderBy('created_at', 'desc');
+      // لا نطلب payments لأن الموديل ما فيه العلاقة
+      $invoicesQuery = Invoice::with([
+        'booking',
+        'items',
+        // 'payments' --> محذوف لأن العلاقة مفقودة في الموديل
+      ])->where('client_id', $client->id)
+        ->orderBy('created_at', 'desc');
     } else {
-        if (! Schema::hasTable('invoices')) {
-            return view('clients.invoices', [
-                'client' => $client,
-                'invoices' => collect(),
-                'totalInvoices' => 0,
-                'sumInvoices' => 0.0,
-                'paidTotal' => 0.0,
-                'dueTotal' => 0.0,
-                'countsByStatus' => [],
-                'typesCount' => [],
-                'depositsTotal' => 0.0,
-                'itemsTotal' => 0.0,
-                'invoicesPerPage' => $perPage,
-                'invoicesAll' => collect(),
-            ]);
-        }
-        $invoicesQuery = DB::table('invoices')->where('client_id', $client->id)->orderBy('created_at', 'desc');
+      if (!Schema::hasTable('invoices')) {
+        return view('clients.invoices', [
+          'client' => $client,
+          'invoices' => collect(),
+          'totalInvoices' => 0,
+          'sumInvoices' => 0.0,
+          'paidTotal' => 0.0,
+          'dueTotal' => 0.0,
+          'countsByStatus' => [],
+          'typesCount' => [],
+          'depositsTotal' => 0.0,
+          'itemsTotal' => 0.0,
+          'invoicesPerPage' => $perPage,
+          'invoicesAll' => collect(),
+        ]);
+      }
+      $invoicesQuery = DB::table('invoices')->where('client_id', $client->id)->orderBy('created_at', 'desc');
     }
 
     if ($useModel) {
-        $invoicesAll = (clone $invoicesQuery)->get();
-        $invoices = $invoicesQuery->paginate($perPage)->withQueryString();
+      $invoicesAll = (clone $invoicesQuery)->get();
+      $invoices = $invoicesQuery->paginate($perPage)->withQueryString();
     } else {
-        $invoicesAll = $invoicesQuery->get();
-        $invoices = DB::table('invoices')->where('client_id', $client->id)->orderBy('created_at','desc')->paginate($perPage);
+      $invoicesAll = $invoicesQuery->get();
+      $invoices = DB::table('invoices')->where('client_id', $client->id)->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
     // مجموع الفواتير
     $sumInvoices = 0.0;
     if (Schema::hasTable('invoices')) {
-        $sumInvoices = (float) DB::table('invoices')
-            ->where('client_id', $client->id)
-            ->sum('total'); // عندك حقل total في السكيمة
+      $sumInvoices = (float) DB::table('invoices')
+        ->where('client_id', $client->id)
+        ->sum('total'); // عندك حقل total في السكيمة
     }
 
     // ======= المدفوعات: استخدم booking_deposits (invoice_id) كمصدر للمدفوع =======
     $paidTotal = 0.0;
     if (Schema::hasTable('booking_deposits')) {
-        $paidTotal = (float) DB::table('booking_deposits')
-            ->join('invoices', 'booking_deposits.invoice_id', '=', 'invoices.id')
-            ->where('invoices.client_id', $client->id)
-            ->sum('booking_deposits.amount');
+      $paidTotal = (float) DB::table('booking_deposits')
+        ->join('invoices', 'booking_deposits.invoice_id', '=', 'invoices.id')
+        ->where('invoices.client_id', $client->id)
+        ->sum('booking_deposits.amount');
     } else {
-        // fallback: لو فيه حقل paid_amount داخل invoices استخدمه
-        if (Schema::hasTable('invoices') && Schema::hasColumn('invoices', 'paid_amount')) {
-            $paidTotal = (float) DB::table('invoices')
-                ->where('client_id', $client->id)
-                ->sum('paid_amount');
-        }
+      // fallback: لو فيه حقل paid_amount داخل invoices استخدمه
+      if (Schema::hasTable('invoices') && Schema::hasColumn('invoices', 'paid_amount')) {
+        $paidTotal = (float) DB::table('invoices')
+          ->where('client_id', $client->id)
+          ->sum('paid_amount');
+      }
     }
 
     $dueTotal = max(0, $sumInvoices - $paidTotal);
@@ -423,32 +590,34 @@ public function clientInvoices(Request $request, $clientId)
     // حالات و أنواع
     $countsByStatus = [];
     if (Schema::hasTable('invoices') && Schema::hasColumn('invoices', 'status')) {
-        $rows = DB::table('invoices')
-            ->select('status', DB::raw('COUNT(*) as cnt'))
-            ->where('client_id', $client->id)
-            ->groupBy('status')
-            ->get();
-        foreach ($rows as $r) $countsByStatus[$r->status] = (int)$r->cnt;
+      $rows = DB::table('invoices')
+        ->select('status', DB::raw('COUNT(*) as cnt'))
+        ->where('client_id', $client->id)
+        ->groupBy('status')
+        ->get();
+      foreach ($rows as $r)
+        $countsByStatus[$r->status] = (int) $r->cnt;
     }
 
     $typesCount = [];
     if (Schema::hasTable('invoices') && Schema::hasColumn('invoices', 'type')) {
-        $rows = DB::table('invoices')
-            ->select('type', DB::raw('COUNT(*) as cnt'))
-            ->where('client_id', $client->id)
-            ->groupBy('type')
-            ->get();
-        foreach ($rows as $r) $typesCount[$r->type] = (int)$r->cnt;
+      $rows = DB::table('invoices')
+        ->select('type', DB::raw('COUNT(*) as cnt'))
+        ->where('client_id', $client->id)
+        ->groupBy('type')
+        ->get();
+      foreach ($rows as $r)
+        $typesCount[$r->type] = (int) $r->cnt;
     }
 
     // مجموع بنود الفاتورة
     $itemsTotal = 0.0;
     if (Schema::hasTable('invoice_items')) {
-        $itemsTotal = (float) DB::table('invoice_items')
-            ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
-            ->where('invoices.client_id', $client->id)
-            ->select(DB::raw('SUM(invoice_items.total) as total'))
-            ->value('total') ?? 0.0;
+      $itemsTotal = (float) DB::table('invoice_items')
+        ->join('invoices', 'invoice_items.invoice_id', '=', 'invoices.id')
+        ->where('invoices.client_id', $client->id)
+        ->select(DB::raw('SUM(invoice_items.total) as total'))
+        ->value('total') ?? 0.0;
     }
 
     // per-invoice aggregates (deposits/payments/items)
@@ -456,12 +625,13 @@ public function clientInvoices(Request $request, $clientId)
 
     $depositsPerInvoice = [];
     if (Schema::hasTable('booking_deposits') && !empty($invoiceIds)) {
-        $rows = DB::table('booking_deposits')
-            ->select('invoice_id', DB::raw('SUM(amount) as total'))
-            ->whereIn('invoice_id', $invoiceIds)
-            ->groupBy('invoice_id')
-            ->get();
-        foreach ($rows as $r) $depositsPerInvoice[$r->invoice_id] = (float)$r->total;
+      $rows = DB::table('booking_deposits')
+        ->select('invoice_id', DB::raw('SUM(amount) as total'))
+        ->whereIn('invoice_id', $invoiceIds)
+        ->groupBy('invoice_id')
+        ->get();
+      foreach ($rows as $r)
+        $depositsPerInvoice[$r->invoice_id] = (float) $r->total;
     }
 
     // paymentsPerInvoice هنا نفس depositsPerInvoice لأننا لا نملك جدول مدفوعات منفصل
@@ -469,32 +639,33 @@ public function clientInvoices(Request $request, $clientId)
 
     $itemsPerInvoice = [];
     if (Schema::hasTable('invoice_items') && !empty($invoiceIds)) {
-        $rows = DB::table('invoice_items')
-            ->select('invoice_id', DB::raw('SUM(total) as total'))
-            ->whereIn('invoice_id', $invoiceIds)
-            ->groupBy('invoice_id')
-            ->get();
-        foreach ($rows as $r) $itemsPerInvoice[$r->invoice_id] = (float)$r->total;
+      $rows = DB::table('invoice_items')
+        ->select('invoice_id', DB::raw('SUM(total) as total'))
+        ->whereIn('invoice_id', $invoiceIds)
+        ->groupBy('invoice_id')
+        ->get();
+      foreach ($rows as $r)
+        $itemsPerInvoice[$r->invoice_id] = (float) $r->total;
     }
 
     return view('clients.invoices', [
-        'client' => $client,
-        'invoices' => $invoices,
-        'invoicesAll' => $invoicesAll,
-        'totalInvoices' => $invoicesAll->count(),
-        'sumInvoices' => (float) $sumInvoices,
-        'paidTotal' => (float) $paidTotal,
-        'dueTotal' => (float) $dueTotal,
-        'countsByStatus' => $countsByStatus,
-        'typesCount' => $typesCount,
-        'depositsTotal' => (float) $paidTotal,      // نفس المدفوعات هنا
-        'itemsTotal' => (float) $itemsTotal,
-        'depositsPerInvoice' => $depositsPerInvoice,
-        'paymentsPerInvoice' => $paymentsPerInvoice,
-        'itemsPerInvoice' => $itemsPerInvoice,
-        'invoicesPerPage' => $perPage,
+      'client' => $client,
+      'invoices' => $invoices,
+      'invoicesAll' => $invoicesAll,
+      'totalInvoices' => $invoicesAll->count(),
+      'sumInvoices' => (float) $sumInvoices,
+      'paidTotal' => (float) $paidTotal,
+      'dueTotal' => (float) $dueTotal,
+      'countsByStatus' => $countsByStatus,
+      'typesCount' => $typesCount,
+      'depositsTotal' => (float) $paidTotal,      // نفس المدفوعات هنا
+      'itemsTotal' => (float) $itemsTotal,
+      'depositsPerInvoice' => $depositsPerInvoice,
+      'paymentsPerInvoice' => $paymentsPerInvoice,
+      'itemsPerInvoice' => $itemsPerInvoice,
+      'invoicesPerPage' => $perPage,
     ]);
-}
+  }
 
 }
 

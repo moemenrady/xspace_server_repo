@@ -19,19 +19,22 @@ Route::get('/products/add-quantity-page', [ProductController::class, 'addQuantit
 
 // تخزين كمية منتج موجود في db
 Route::post('/products/{id}/add-quantity', [ProductController::class, 'addQuantity'])->name('products.addQuantity');
+Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
 
 // عرض جميع المنتجات
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
 // البحث عن المنتجات الموجوده
 
-Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
 
 Route::get('/important-products/create', [ProductController::class, 'createImportant'])->name('important-products.create');
 
 
 Route::post('/important-products', [ProductController::class, 'storeImportant'])
     ->name('important_products.store');
+Route::put('/important-products/{importantProduct}', [ProductController::class, 'updateImportant'])
+    ->name('important_products.update');
 
 });
 

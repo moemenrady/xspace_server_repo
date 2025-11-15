@@ -18,4 +18,10 @@ class BookingConflictService
         ->exists();
 }
 
+  public function hasInProgressConflict(int $hallId,): bool
+{
+    return Booking::where('hall_id', $hallId)
+        ->whereIn('status', ['in_progress']) // ✅ نتحقق بس من الحالات الفعّالة
+        ->exists();
+}
 }

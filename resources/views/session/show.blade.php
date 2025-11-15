@@ -33,9 +33,15 @@
             <div class="section">
                 <h3>👤 بيانات العميل</h3>
                 <div class="box">
+
+                    <p><strong> المعرف: </strong>{{ $session->client->id }}</p>
                     <p><strong>الاسم:</strong> {{ $session->client->name }}</p>
                     <p><strong>الموبايل:</strong> {{ $session->client->phone }}</p>
                 </div>
+                <a href="{{ route('clients.edit', $session->client->id) }}" class="btn edit-btn" title="تعديل بيانات العميل">
+                    <span class="edit-ico" aria-hidden="true">✏️</span>
+                    <span class="edit-txt">تعديل</span>
+                </a>
             </div>
 
             <!-- بيانات الجلسة -->
@@ -66,7 +72,7 @@
                     </div>
 
                     <div class="inline-edit-row" style="margin-top:8px;">
-                          <form id="inlineEditForm"
+                        <form id="inlineEditForm"
                             style="display:none; gap:8px; align-items:center; transition:all .18s ease; margin-top:6px;">
                             @csrf
                             @method('PUT')
@@ -173,40 +179,20 @@
                 </div>
             </div>
 
-            <!-- الإجمالي -->
-            <div class="section">
-                <h3>📊 الحساب</h3>
-                <div class="box">
-                    <p><strong>إجمالي قبل الخصم:</strong> <span class="price">{{ $total }}</span> جنيه</p>
-                    @if (Auth::user()->role === 'admin')
-                        <div class="discount-box">
-                            <label><input type="radio" name="discount_type" value="amount" form="checkoutForm" checked>
-                                مبلغ</label>
-                            <label><input type="radio" name="discount_type" value="percent" form="checkoutForm"> نسبة
-                                %</label>
-                            <input type="number" step="0.01" name="discount_value" form="checkoutForm"
-                                placeholder="قيمة الخصم">
-                            <input type="text" name="discount_reason" form="checkoutForm"
-                                placeholder="سبب الخصم (اختياري)">
-                            <p>بعد الخصم: <strong id="final_total_preview">{{ $total }}</strong> جنيه</p>
-                        </div>
-                    @endif
-                </div>
-            </div>
-
+           
             <!-- المشتريات -->
             <div class="section">
                 <h3>🛒 المشتريات</h3>
-                <div class="box selected-products">
+                <div class="box selected-products" id="openPurchasesModal" style="cursor:pointer;">
                     @forelse ($purchases as $purchase)
-                        <div class="purchase-row" data-purchase-id="{{ $purchase->id }}"
-                            data-purchase-product-id="{{ $purchase->product_id }}">
+                        <div class="purchase-row" data-purchase-id="{{ $purchase->id }}">
                             <p>{{ $purchase->product->name }} × {{ $purchase->quantity }}</p>
                         </div>
                     @empty
                         <p>لا يوجد مشتريات</p>
                     @endforelse
                 </div>
+
 
                 <div class="products-list">
 
@@ -222,10 +208,33 @@
                     @endforeach
                 </div>
             </div>
+             <!-- الإجمالي -->
+            <div class="section">
+                <h2>📊 الحساب</h2>
+                <div class="box">
+                    {{-- <p><strong>إجمالي قبل الخصم:</strong> <span class="price">{{ $total }}</span> جنيه</p> --}}
+
+                        <div class="discount-box">
+                            {{-- <label><input type="radio" name="discount_type" value="amount" form="checkoutForm" checked>
+                                مبلغ</label> --}}
+                            {{-- <label><input type="radio" name="discount_type" value="percent" form="checkoutForm"> نسبة
+                                %</label>
+                            <input type="number" step="0.01" name="discount_value" form="checkoutForm"
+                                placeholder="قيمة الخصم">
+                            <input type="text" name="discount_reason" form="checkoutForm"
+                                placeholder="سبب الخصم (اختياري)"> --}}
+                            <p style="font-size: 1.5rem; color: green; font-weight: bold;">
+                                <strong id="final_total_preview">{{ $total }}</strong> جنيه
+                            </p>
+                        </div>
+
+                </div>
+            </div>
 
             <!-- الأزرار -->
             <div class="form-btn">
-              <a id="addPurchasesBtn" href="{{ route('purchases.create', $session->id) }}" class="btn">➕ إضافة مشتريات</a>
+                <a id="addPurchasesBtn" href="{{ route('purchases.create', $session->id) }}" class="btn">➕ إضافة
+                    مشتريات</a>
 
                 <form id="checkoutForm" action="{{ route('sessions.checkout', $session->id) }}" method="POST"
                     style="display:inline;">
@@ -483,6 +492,433 @@
 
     {{-- استدعاء المودال من ملف خارجي --}}
     @include('session.modal.split_persons')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // قيم من السيرفر (عدل أسماء المتغيرات حسب ما في Blade)
+            const totalHoursPrice = Number(@json($hours_price ?? 0)); // إجمالي سعر الساعات للجلسة
+            const sessionPersons = Number(@json($session->persons ?? 1)); // إجمالي عدد الأفراد في الجلسة
+            // purchasesArray: [{product_id, name, qty, price, cost}, ...]
+            const purchases = @json($purchasesArray ?? []);
+
+            // عناصر DOM داخل المودال
+            const splitForm = document.querySelector('#splitSessionModal form');
+            const splitPersonsInput = splitForm.querySelector('input[name="split_persons"]');
+            const itemsInputs = Array.from(splitForm.querySelectorAll('input[name^="items"]'));
+            const splitPriceValueEl = document.getElementById('splitPriceValue');
+            const splitItemsValueEl = document.getElementById('splitItemsValue');
+            const splitHoursValueEl = document.getElementById('splitHoursValue');
+            const submitBtn = splitForm.querySelector('button[type="submit"]');
+
+            // safety: لو الفورم أو العنصر مش موجود نتوقف
+            if (!splitForm || !splitPersonsInput) return;
+
+            // بناء خريطة productId => price, maxQty
+            const priceMap = {};
+            purchases.forEach(p => {
+                priceMap[String(p.product_id)] = {
+                    price: Number(p.price || 0),
+                    maxQty: Number(p.qty || 0)
+                };
+            });
+
+            // دالة تنسيق الأرقام
+            function fmt(n) {
+                return Number(n || 0).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            // دالة حساب حصة الساعات للمجموعة المنفصلة
+            function calcHoursShare(splitPersons) {
+                if (!sessionPersons || sessionPersons <= 0) return 0;
+                // نفترض: حصة الساعات = (totalHoursPrice / sessionPersons) * splitPersons
+                const perPerson = totalHoursPrice / sessionPersons;
+                return perPerson * splitPersons;
+            }
+
+            // دالة حساب مجموع المشتريات المختارة في الفورم
+            function calcSelectedItems() {
+                let sum = 0;
+                // كل input name مثل items[<product_id>]
+                itemsInputs.forEach(inp => {
+                    const name = inp.getAttribute('name'); // items[12]
+                    const matches = name.match(/items\[(\d+)\]/);
+                    if (!matches) return;
+                    const productId = matches[1];
+                    const qty = Number(inp.value || 0);
+                    const info = priceMap[productId];
+                    if (!info) return;
+                    // safety: clamp qty
+                    const clamped = Math.max(0, Math.min(qty, info.maxQty));
+                    sum += clamped * info.price;
+                });
+                return sum;
+            }
+
+            // تحقق من صلاحية الإدخالات (عدد الأفراد، الكميات)
+            function validateInputs() {
+                const splitPersons = Number(splitPersonsInput.value || 0);
+                if (!Number.isFinite(splitPersons) || splitPersons < 1 || splitPersons >= sessionPersons) {
+                    return {
+                        ok: false,
+                        message: `عدد الأفراد يجب أن يكون بين 1 و ${sessionPersons - 1}`
+                    };
+                }
+                // تحقق كميات المشتريات
+                for (let inp of itemsInputs) {
+                    const name = inp.getAttribute('name');
+                    const productId = (name.match(/items\[(\d+)\]/) || [])[1];
+                    const info = priceMap[productId];
+                    if (!info) continue;
+                    const qty = Number(inp.value || 0);
+                    if (!Number.isFinite(qty) || qty < 0) {
+                        return {
+                            ok: false,
+                            message: 'الرجاء إدخال أعداد صحيحة للمشتريات'
+                        };
+                    }
+                    if (qty > info.maxQty) {
+                        return {
+                            ok: false,
+                            message: `الكمية للمُنتج ${productId} لا يمكن أن تتجاوز ${info.maxQty}`
+                        };
+                    }
+                }
+                return {
+                    ok: true
+                };
+            }
+
+            // الدالة الأساسية التي تحدّث الواجهة
+            function refresh() {
+                const valid = validateInputs();
+                if (!valid.ok) {
+                    // تعطيل زر الإرسال وعرض رسالة قصيرة (يمكن تحسين الواجهة لاحقًا)
+                    if (submitBtn) submitBtn.disabled = true;
+                    splitPriceValueEl.textContent = 'خطأ في الإدخال';
+                    splitItemsValueEl.textContent = '-';
+                    splitHoursValueEl.textContent = '-';
+                    return;
+                }
+                if (submitBtn) submitBtn.disabled = false;
+
+                const splitPersons = Number(splitPersonsInput.value || 0);
+                const hoursShare = calcHoursShare(splitPersons);
+                const itemsSum = calcSelectedItems();
+                const total = hoursShare + itemsSum;
+
+                splitHoursValueEl.textContent = `${fmt(hoursShare)} جنيه`;
+                splitItemsValueEl.textContent = `${fmt(itemsSum)} جنيه`;
+                splitPriceValueEl.textContent = `${fmt(total)} جنيه`;
+
+                // ضع قيمة مخفية في الفورم لتُرسَل للسيرفر (مثلاً amount) — سيتم إنشاؤها أو تحديثها
+                let existingHidden = splitForm.querySelector('input[name="split_total_amount"]');
+                if (!existingHidden) {
+                    existingHidden = document.createElement('input');
+                    existingHidden.type = 'hidden';
+                    existingHidden.name = 'split_total_amount';
+                    splitForm.appendChild(existingHidden);
+                }
+                existingHidden.value = total.toFixed(2);
+
+                // أيضًا نُحدّث حقل المشتريات (لو محتاجين إرسال التفاصيل)
+                let itemsHidden = splitForm.querySelector('input[name="split_items_summary"]');
+                if (!itemsHidden) {
+                    itemsHidden = document.createElement('input');
+                    itemsHidden.type = 'hidden';
+                    itemsHidden.name = 'split_items_summary';
+                    splitForm.appendChild(itemsHidden);
+                }
+                // نبني ملخّص: {productId: qty, ...} فقط للتي qty>0
+                const summary = {};
+                itemsInputs.forEach(inp => {
+                    const matches = inp.name.match(/items\[(\d+)\]/);
+                    if (!matches) return;
+                    const pid = matches[1];
+                    const qty = Number(inp.value || 0);
+                    if (qty > 0) summary[pid] = qty;
+                });
+                itemsHidden.value = JSON.stringify(summary);
+            }
+
+            // ربط الأحداث
+            splitPersonsInput.addEventListener('input', refresh);
+            itemsInputs.forEach(inp => {
+                // اجازه إدخال أرقام سالبة؟ نمنعها فورًا
+                inp.addEventListener('input', () => {
+                    // نلقي نظرة سريعة على max
+                    const name = inp.name;
+                    const pid = (name.match(/items\[(\d+)\]/) || [])[1];
+                    const info = priceMap[pid];
+                    let v = Number(inp.value || 0);
+                    if (!Number.isFinite(v)) v = 0;
+                    if (info) {
+                        if (v < 0) v = 0;
+                        if (v > info.maxQty) v = info.maxQty;
+                    }
+                    // نكتب القيمة المصحّحة (بهذا نمنع القيم غير المسموح بها)
+                    inp.value = v;
+                    refresh();
+                });
+                // نستخدم change لتحديث عند الخروج من الحقل أيضاً
+                inp.addEventListener('change', refresh);
+            });
+
+            // تهيئة: إذا ما في قيمة في الحقل نضع قيمة افتراضية 1 (لو تريد)
+            if (!splitPersonsInput.value) {
+                // لا نفرض قيمة؛ نترك المستخدم يحدد. لكن لو تحب تفعل التعليق التالي:
+                // splitPersonsInput.value = 1;
+            }
+
+            // أول تشغيل
+            refresh();
+
+        });
+    </script>
+  <script>
+document.addEventListener("DOMContentLoaded", function() {
+    let selectedProducts = []; // المنتجات المختارة مؤقتاً
+
+    // إنشاء الـ Snackbar container
+    let snackbar = document.createElement("div");
+    snackbar.id = "selectedProductsSnackbar";
+    snackbar.style.position = "fixed";
+    snackbar.style.bottom = "20px";
+    snackbar.style.right = "20px";
+    snackbar.style.background = "#333";
+    snackbar.style.color = "#fff";
+    snackbar.style.padding = "15px";
+    snackbar.style.borderRadius = "12px";
+    snackbar.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+    snackbar.style.zIndex = "99999";
+    snackbar.style.display = "none";
+    snackbar.style.minWidth = "250px";
+    document.body.appendChild(snackbar);
+
+    // زر مسح الكل
+    let clearBtn = document.createElement("span");
+    clearBtn.textContent = "❌";
+    clearBtn.style.cursor = "pointer";
+    clearBtn.style.float = "right";
+    clearBtn.style.marginBottom = "10px";
+    snackbar.appendChild(clearBtn);
+
+    clearBtn.addEventListener("click", () => {
+        selectedProducts = [];
+        updateSnackbarUI();
+    });
+
+    let list = document.createElement("div");
+    list.id = "selectedProductsList";
+    snackbar.appendChild(list);
+
+    let confirmBtn = document.createElement("button");
+    confirmBtn.textContent = "✅ تأكيد المشتريات";
+    confirmBtn.style.marginTop = "10px";
+    confirmBtn.className = "btn btn-success btn-sm";
+    snackbar.appendChild(confirmBtn);
+
+    function updateSnackbarUI() {
+        list.innerHTML = "";
+        if (selectedProducts.length === 0) {
+            snackbar.style.display = "none";
+            return;
+        }
+
+        selectedProducts.forEach(p => {
+            const prodName = document.querySelector(`.product-item[data-id="${p.product_id}"]`).textContent;
+            const div = document.createElement("div");
+            div.style.display = "flex";
+            div.style.justifyContent = "space-between";
+            div.style.alignItems = "center";
+            div.style.marginBottom = "5px";
+
+            let nameSpan = document.createElement("span");
+            nameSpan.textContent = `${prodName} × ${p.qty}`;
+
+            let minusBtn = document.createElement("button");
+            minusBtn.textContent = "➖";
+            minusBtn.className = "btn btn-sm btn-warning";
+            minusBtn.style.marginLeft = "10px";
+
+            minusBtn.addEventListener("click", () => {
+                if (p.qty > 1) {
+                    p.qty -= 1;
+                } else {
+                    selectedProducts = selectedProducts.filter(item => item.product_id !== p.product_id);
+                }
+                updateSnackbarUI();
+            });
+
+            div.appendChild(nameSpan);
+            div.appendChild(minusBtn);
+            list.appendChild(div);
+        });
+
+        snackbar.style.display = "block";
+    }
+
+    // التعامل مع أزرار المنتجات
+    document.querySelectorAll(".product-item").forEach(btn => {
+        btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            const id = parseInt(this.dataset.id);
+            const existing = selectedProducts.find(p => p.product_id === id);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                selectedProducts.push({
+                    product_id: id,
+                    qty: 1
+                });
+            }
+            updateSnackbarUI();
+        });
+    });
+
+    confirmBtn.addEventListener("click", function() {
+    if (selectedProducts.length === 0) return;
+
+    // نستخدم أول فورم كـ مرجع (كلها نفس الأكشن)
+    const firstForm = document.querySelector(".invoiceForm");
+    if (!firstForm) return;
+
+    const allItems = selectedProducts.map(p => ({
+        id: p.product_id,
+        qty: p.qty
+    }));
+
+    firstForm.querySelector(".itemsInput").value = JSON.stringify(allItems);
+    firstForm.submit();
+
+    // فضي المصفوفة
+    selectedProducts = [];
+    updateSnackbarUI();
+});
+
+});
+</script>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const modalTrigger = document.getElementById('openPurchasesModal');
+            const form = document.getElementById('updatePurchasesForm');
+            const alertBox = document.getElementById('purchasesAlert');
+            let removedPurchases = [];
+
+            // فتح المودال
+            modalTrigger.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('purchasesModal'));
+                modal.show();
+            });
+
+            // أزرار + و -
+            document.querySelectorAll('.increase').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    let input = this.parentNode.querySelector('.quantity-input');
+                    input.value = parseInt(input.value) + 1;
+                });
+            });
+
+            document.querySelectorAll('.decrease').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    let input = this.parentNode.querySelector('.quantity-input');
+                    if (parseInt(input.value) > 1) input.value = parseInt(input.value) - 1;
+                });
+            });
+
+            // ❌ حذف المنتج
+            document.querySelectorAll('.remove-purchase').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const row = this.closest('[data-id]');
+                    const id = row.dataset.id;
+                    removedPurchases.push(id); // نحفظه في مصفوفة
+                    row.remove();
+                });
+            });
+
+            // 💾 حفظ التعديلات
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                let formData = new FormData(form);
+                formData.append('removed', JSON.stringify(removedPurchases)); // نضيف المنتجات المحذوفة
+
+                fetch("{{ route('sessionPurchases.update', $session->id ?? 1) }}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            alertBox.className = 'alert alert-success';
+                            alertBox.textContent = '✅ تم تحديث المشتريات بنجاح';
+                            alertBox.classList.remove('d-none');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            throw new Error(data.message || 'حدث خطأ أثناء الحفظ');
+                        }
+                    })
+                    .catch(err => {
+                        alertBox.className = 'alert alert-danger';
+                        alertBox.textContent = '❌ ' + err.message;
+                        alertBox.classList.remove('d-none');
+                    });
+            });
+        });
+    </script>
+
+
+    {{-- 🟢 مودال تعديل المشتريات --}}
+    <div class="modal fade" id="purchasesModal" tabindex="-1" aria-labelledby="purchasesModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header">
+                    <h5 class="modal-title">🛒 تعديل المشتريات</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="updatePurchasesForm">
+                        @csrf
+
+                        <div id="purchaseItemsContainer">
+                            @forelse ($purchases as $purchase)
+                                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2"
+                                    data-id="{{ $purchase->id }}">
+                                    <span class="fw-bold">{{ $purchase->product->name }}</span>
+
+                                    <div class="d-flex align-items-center">
+                                        <button type="button"
+                                            class="btn btn-outline-secondary btn-sm decrease">-</button>
+                                        <input type="number" class="form-control mx-2 text-center quantity-input"
+                                            name="quantities[{{ $purchase->id }}]" value="{{ $purchase->quantity }}"
+                                            min="1" style="width:70px;">
+                                        <button type="button"
+                                            class="btn btn-outline-secondary btn-sm increase">+</button>
+                                    </div>
+
+                                    <button type="button" class="btn btn-danger btn-sm remove-purchase">❌</button>
+                                </div>
+                            @empty
+                                <p class="text-muted text-center">لا يوجد مشتريات</p>
+                            @endforelse
+                        </div>
+
+                        <div id="purchasesAlert" class="alert d-none mt-3"></div>
+
+                        <button type="submit" class="btn btn-primary w-100 mt-3">💾 حفظ التعديلات</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 
@@ -490,9 +926,9 @@
 @section('style')
     <style>
         /* ==========================
-               Unified responsive stylesheet
-               Desktop & Mobile (merged)
-               ========================== */
+                                           Unified responsive stylesheet
+                                           Desktop & Mobile (merged)
+                                           ========================== */
 
         /* ===== Variables & reset ===== */
         :root {
@@ -1061,9 +1497,9 @@
         }
 
         /* ======================
-               Responsive overrides
-               Mobile-first approach
-               ====================== */
+                                           Responsive overrides
+                                           Mobile-first approach
+                                           ====================== */
 
         /* Small screens (phones) */
         @media (max-width: 420px) {

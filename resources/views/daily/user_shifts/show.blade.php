@@ -101,7 +101,7 @@
                                         <strong>فاتورة مرتبطة:</strong>
                                         @if ($action->invoice)
                                             <a
-                                                href="{{ route('invoices.show', $action->invoice->id) }}">#{{ $action->invoice->id }}</a>
+                                                href="{{ route('invoices.admin_show', $action->invoice->id) }}">#{{ $action->invoice->id }}</a>
                                         @else
                                             —
                                         @endif

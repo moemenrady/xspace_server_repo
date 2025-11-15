@@ -268,26 +268,33 @@
 
             </thead>
 
-            <tbody id="productTable">
+          <tbody id="productTable">
+    @foreach ($products as $product)
+        <tr data-href="{{ route('products.show', $product->id) }}" style="cursor: pointer;">
+            <td data-label="المعرف">{{ $product->id }}</td>
+            <td data-label="اسم المنتج">{{ $product->name }}</td>
+            <td data-label="السعر">{{ $product->price }}</td>
+            <td data-label="التكلفة">{{ $product->cost }}</td>
+            <td data-label="العدد">{{ $product->quantity }}</td>
+        </tr>
+    @endforeach
+</tbody>
 
-                @foreach ($products as $product)
-                    <tr>
-
-                        <td data-label="المعرف">{{ $product->id }}</td>
-
-                        <td data-label="اسم المنتج">{{ $product->name }}</td>
-
-                        <td data-label="السعر">{{ $product->price }}</td>
-
-                        <td data-label="التكلفة">{{ $product->cost }}</td>
-
-                        <td data-label="العدد">{{ $product->quantity }}</td>
-
-                    </tr>
-                @endforeach
-            </tbody>
         </table>
     </div>
+<script>
+    // جعل الصف قابل للنقر لعرض تفاصيل المنتج
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('#productTable tr').forEach(row => {
+            row.addEventListener('click', function () {
+                const url = this.dataset.href;
+                if (url) {
+                    window.location.href = url;
+                }
+            });
+        });
+    });
+</script>
 
     <script>
         // البحث AJAX

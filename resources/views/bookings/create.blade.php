@@ -381,59 +381,67 @@
 
             // ======= renderCalendar (مثل كودك الأصلي) =======
             function renderCalendar(year, month) {
-                fetch(`{{ route('bookings.calendar') }}?year=${year}&month=${month+1}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        titleEl.textContent = `${year} / ${month+1}`;
-                        let firstDay = new Date(year, month, 1).getDay();
-                        let daysInMonth = new Date(year, month + 1, 0).getDate();
+    fetch(`{{ route('bookings.calendar') }}?year=${year}&month=${month+1}`)
+        .then(res => res.json())
+        .then(data => {
+            titleEl.textContent = `${year} / ${month+1}`;
+            let firstDay = new Date(year, month, 1).getDay();
+            let daysInMonth = new Date(year, month + 1, 0).getDate();
 
-                        let html = `<table class="table text-center"><tr>`;
-                        let day = 0;
+            // أسماء الأيام بالعربي (0 = الأحد ... 6 = السبت) متوافقة مع getDay()
+            const weekdayNames = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 
-                        for (let i = 0; i < firstDay; i++) {
-                            html += `<td></td>`;
-                            day++;
-                        }
+            let html = `<table class="table text-center"><tr>`;
+            let day = 0;
 
-                        for (let d = 1; d <= daysInMonth; d++) {
-                            if (day % 7 == 0) html += `</tr><tr>`;
-                            let bookings = data[d] || [];
-                            let dots = '';
-                            bookings.forEach(b => {
-                                let color = hallColor(b.hall_id);
-                                dots += `<span class="booking-dot" style="background:${color}"></span>`;
-                            });
-
-                            let todayClass = "";
-                            let now = new Date();
-                            if (d === now.getDate() && year === now.getFullYear() && month === now.getMonth()) {
-                                todayClass = "today";
-                            }
-
-                            html += `<td class="${todayClass}" data-date="${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}">
-                            <strong>${d}</strong><br>
-                            ${dots}
-                         </td>`;
-                            day++;
-                        }
-
-                        html += `</tr></table>`;
-                        calendarEl.innerHTML = html;
-
-                        // اربط الكليك بعد التوليد
-                        document.querySelectorAll('#calendar td[data-date]').forEach(td => {
-                            td.addEventListener('click', function() {
-                                let date = this.dataset.date;
-                                loadDayBookings(date);
-                            });
-                        });
-                    })
-                    .catch(err => {
-                        calendarEl.innerHTML = `<div class="text-danger p-2">⚠ خطأ في تحميل الكالندر</div>`;
-                        console.error(err);
-                    });
+            for (let i = 0; i < firstDay; i++) {
+                html += `<td></td>`;
+                day++;
             }
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                if (day % 7 == 0) html += `</tr><tr>`;
+                let bookings = data[d] || [];
+                let dots = '';
+                bookings.forEach(b => {
+                    let color = hallColor(b.hall_id);
+                    dots += `<span class="booking-dot" style="background:${color}"></span>`;
+                });
+
+                let todayClass = "";
+                let now = new Date();
+                if (d === now.getDate() && year === now.getFullYear() && month === now.getMonth()) {
+                    todayClass = "today";
+                }
+
+                // اسم اليوم للتاريخ ده
+                let weekdayIndex = new Date(year, month, d).getDay(); // 0 = Sun ... 6 = Sat
+                let weekdayLabel = weekdayNames[weekdayIndex];
+
+                html += `<td class="${todayClass}" data-date="${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}">
+                    <strong>${d}</strong>
+                    <div class="weekday-name">${weekdayLabel}</div>
+                    <div class="dots-wrap">${dots}</div>
+                 </td>`;
+                day++;
+            }
+
+            html += `</tr></table>`;
+            calendarEl.innerHTML = html;
+
+            // اربط الكليك بعد التوليد
+            document.querySelectorAll('#calendar td[data-date]').forEach(td => {
+                td.addEventListener('click', function() {
+                    let date = this.dataset.date;
+                    loadDayBookings(date);
+                });
+            });
+        })
+        .catch(err => {
+            calendarEl.innerHTML = `<div class="text-danger p-2">⚠ خطأ في تحميل الكالندر</div>`;
+            console.error(err);
+        });
+}
 
             // ======= loadDayBookings (مثل كودك الأصلي) =======
             function loadDayBookings(date) {
@@ -1298,7 +1306,125 @@
   }); // ready
 })(jQuery);
 </script>
+  <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // عنصر التقويم موجود؟ لو لا: ما يعملش حاجة
+            const calendar = document.getElementById('calendar');
+            if (!calendar) return;
 
+            // selectors ممكن تعدّلهم لو عندك أسماء مختلفة
+            const DAY_PICKER_SELECTOR = '#day_picker';
+            const DAY_BOOKINGS_CONTENT_SEL = '#day-bookings-content'; // المكان اللي بتعرض فيه تفاصيل اليوم
+            const DAY_BOOKINGS_SECTION_SEL = '#day-bookings-section'; // بديل محتمل لو موجود
+
+            // حاول تشغيل دالة بحساب المدة لو موجودة
+            function tryCalcDuration() {
+                try {
+                    if (typeof safeCalcDurationAndTrigger === 'function') safeCalcDurationAndTrigger();
+                } catch (e) {
+                    /* ignore */ }
+            }
+
+            // دالة تساعد على عمل scroll سلس وانتظار محتوى
+            function scrollToBookingsAndHighlight(dateStr) {
+                // أولوية: المحتوى داخل DAY_BOOKINGS_CONTENT_SEL ثم البديل
+                const container = document.querySelector(DAY_BOOKINGS_CONTENT_SEL) || document.querySelector(
+                    DAY_BOOKINGS_SECTION_SEL);
+                if (!container) return;
+
+                // scroll سلس بحيث العنوان/حافة فوق الشاشة مع 12px مسافة
+                const top = container.getBoundingClientRect().top + window.pageYOffset - 12;
+                window.scrollTo({
+                    top,
+                    behavior: 'smooth'
+                });
+
+                // لو المحتوى يتغيّر عبر AJAX، نتابع DOM changes ونضيف تمييز مؤقت للكروت بعد التحديث
+                const applyHighlight = () => {
+                    // نجرّب تمييز كروت الحجز (class .booking-card) إن وجدت
+                    const cards = container.querySelectorAll('.booking-card');
+                    if (cards.length > 0) {
+                        cards.forEach(c => {
+                            c.classList.remove('__scroll-highlight');
+                            // force reflow then add to retrigger animation
+                            void c.offsetWidth;
+                            c.classList.add('__scroll-highlight');
+                            // ازالة الكلاس بعد الوقت (سابقا 2 دور للأنيمي) — نحذف بعد 2200ms
+                            setTimeout(() => c.classList.remove('__scroll-highlight'), 2200);
+                        });
+                        return true;
+                    }
+                    // لو مفيش كروت، نميّز الحاوية نفسها كبديل
+                    container.classList.remove('__scroll-highlight-container');
+                    void container.offsetWidth;
+                    container.classList.add('__scroll-highlight-container');
+                    setTimeout(() => container.classList.remove('__scroll-highlight-container'), 2200);
+                    return true;
+                };
+
+                // لو المحتوى جاهز الآن، طبّق فوراً
+                if (applyHighlight()) return;
+
+                // وإلا نراقب التغييرات (مثلاً نتيجة استجابة AJAX)
+                const mo = new MutationObserver((mutations, obs) => {
+                    if (applyHighlight()) {
+                        obs.disconnect();
+                    }
+                });
+                mo.observe(container, {
+                    childList: true,
+                    subtree: true
+                });
+                // كسقطة أمان: بعد 2500ms ننفك المراقب لو لم يحدث شيء
+                setTimeout(() => mo.disconnect(), 3000);
+            }
+
+            // استمع للنقرات على خلايا التقويم (لو renderCalendar بيربط أحداث، فإن هذا التكامل آمن أيضاً)
+            calendar.addEventListener('click', function(e) {
+                const td = e.target.closest('td[data-date]');
+                if (!td) return;
+
+                const date = td.dataset.date; // بصيغة yyyy-mm-dd كما في كودك
+                if (!date) return;
+
+                // 1) عبّي حقل اختيار اليوم في الفورم لو موجود
+                const dayPicker = document.querySelector(DAY_PICKER_SELECTOR);
+                if (dayPicker) {
+                    try {
+                        dayPicker.value = date;
+                        // أطلق حدث تغيير لكي تُفعّل جميع الـ listeners المرتبطة
+                        dayPicker.dispatchEvent(new Event('input', {
+                            bubbles: true
+                        }));
+                        dayPicker.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+                    } catch (err) {}
+                }
+
+                // 2) استدعاء الوظيفة الموجودة لعرض تفاصيل اليوم (لو موجودة)
+                try {
+                    if (typeof loadDayBookings === 'function') {
+                        loadDayBookings(date);
+                    } else {
+                        // لو الدالة مش موجودة، حاول النقر على الخلية الأصلي (في حال renderCalendar ربطها)
+                        td.click();
+                    }
+                } catch (err) {
+                    console.error('[calendar-integrate] loadDayBookings error', err);
+                }
+
+                // 3) شغّل محاولة حساب المدة (لو عندك)
+                tryCalcDuration();
+
+                // 4) اعمل scroll للمكان الخاص بتفاصيل اليوم واضف highlight بعد التحميل
+                // ضيفْ تأخير خفيف علشان يعطي فرصة للـ AJAX يبدأ بالرد
+                setTimeout(() => scrollToBookingsAndHighlight(date), 120);
+            }, {
+                passive: true
+            });
+        });
+    </script>
 @endsection
 
 @section('style')
@@ -1453,7 +1579,29 @@
                 font-size: 12px;
             }
         }
+  /* شوية ستايل صغير لاسم اليوم تحت التاريخ */
+        #calendar .weekday-name {
+            font-size: 0.75rem;
+            color: #6c757d;
+            /* bootstrap text-muted */
+            margin-top: 4px;
+            display: block;
+        }
 
+        /* إبراز اليوم الحالي */
+        #calendar td.today {
+            background: #fff8dc;
+            border-radius: 6px;
+        }
+
+        /* نقط الحجز تبقى صف */
+        .booking-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin: 0 2px;
+        }
         /* Estimate banner styling */
         .estimate-banner {
             position: fixed;
@@ -1528,6 +1676,23 @@
                 top: 10px;
                 width: calc(100% - 20px);
             }
+        }
+                /* تأثير تمييز مؤقت على كروت الحجز بعد الانتقال */
+        .__scroll-highlight {
+          animation: __flash 1s ease-in-out 0s 2;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+          border-radius: 6px;
+          transition: transform .12s;
+        }
+        @keyframes __flash {
+          0% { transform: translateY(0); background-color: transparent; }
+          30% { transform: translateY(-4px); background-color: #fff7cc; }
+          100% { transform: translateY(0); background-color: transparent; }
+        }
+        
+        /* لو عايز تمييز للصندوق كله بدل الكروت */
+        .__scroll-highlight-container {
+          animation: __flash 1s ease-in-out 0s 2;
         }
     </style>
 @endsection

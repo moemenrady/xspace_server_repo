@@ -32,4 +32,14 @@ class Subscription extends Model
   {
     return $this->belongsTo(SubscriptionPlan::class, 'plan_id');
   }
+    public function visits()
+    {
+        return $this->hasMany(SubscriptionVisit::class);
+    }
+
+    // آخر زيارة
+    public function latestVisit()
+    {
+        return $this->hasOne(SubscriptionVisit::class)->latestOfMany();
+    }
 }

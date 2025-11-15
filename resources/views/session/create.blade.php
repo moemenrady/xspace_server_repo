@@ -26,7 +26,7 @@
       
         <h2 class="page-title">إنشاء جلسة جديدة</h2>
 
-        <form action="{{ route('session.store') }}" method="POST">
+        <form action="{{ route('session.store.manager') }}" method="POST">
             @csrf
 
             {{-- البحث بالهاتف --}}

@@ -11,7 +11,27 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 class BookingPurchaseController extends Controller
 {
+public function updatePurchases(Request $request, $bookingId)
+{
+    $quantities = $request->input('quantities', []);
+    $removed = json_decode($request->input('removed', '[]'), true);
 
+    // 🟩 تحديث الكميات
+    foreach ($quantities as $purchaseId => $qty) {
+        BookingPurchase::where('id', $purchaseId)
+            ->where('booking_id', $bookingId)
+            ->update(['quantity' => $qty]);
+    }
+
+    // 🟥 حذف المنتجات اللي اتشالت
+    if (!empty($removed)) {
+        BookingPurchase::whereIn('id', $removed)
+            ->where('booking_id', $bookingId)
+            ->delete();
+    }
+
+    return response()->json(['status' => 'success']);
+}
   public function create(Request $request, Booking $booking)
   {
     return view("purchase.booking.create", compact("booking"));

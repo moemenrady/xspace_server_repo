@@ -29,6 +29,6 @@ class InvoiceItem extends Model
     }
       public function session()
     {
-        return $this->belongsTo(Session::class, 'session_id');
+        return $this->belongsTo(Sation::class, 'session_id');
     }
 }

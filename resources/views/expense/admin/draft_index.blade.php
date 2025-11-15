@@ -132,7 +132,7 @@
             font-family: "Cairo", sans-serif;
             background: var(--bg);
             margin: 0;
-            padding: 28px;
+            padding: 90px;
             color: var(--text);
             -webkit-font-smoothing:antialiased;
             -moz-osx-font-smoothing:grayscale;

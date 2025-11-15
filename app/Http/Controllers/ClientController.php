@@ -12,6 +12,12 @@ use App\Models\Subscription;
 
 use Illuminate\Http\Request;
 
+use App\Models\Specialization;
+
+use App\Models\EducationStage;
+
+use Illuminate\Validation\Rule;
+
 class ClientController extends Controller
 {
   public function show(Client $client)
@@ -75,18 +81,89 @@ class ClientController extends Controller
       'phone' => $request->get('phone')
     ]);
   }
+  
+  public function searchId(Request $request)
+  {
+    $query = trim($request->get('query', ''));
+
+    if ($query === '' || !ctype_digit($query)) {
+      return response()->json([], 200, ['Content-Type' => 'application/json; charset=utf-8']);
+    }
+
+    $results = Client::where('id', $query)
+      ->select(['id', 'name', 'phone', 'age', 'specialization_id', 'education_stage_id'])
+      ->get();
+
+    // هُنا نعيد JSON مع JSON_UNESCAPED_UNICODE ليُطبع العربي بدون \uXXXX
+    return response()->json($results, 200, ['Content-Type' => 'application/json; charset=utf-8'], JSON_UNESCAPED_UNICODE);
+  }
   public function search(Request $request)
   {
     $query = $request->get('query');
 
     $results = Client::where('phone', 'LIKE', "%{$query}%")
       ->orWhere('name', 'LIKE', "%{$query}%")
-      ->orWhere('id', $query)
-      ->select('id', 'phone', 'name') // هات اللي محتاجه
-      ->limit(10)
+
+      ->select('id', 'name', 'phone', 'age', 'specialization_id', 'education_stage_id') // هات اللي محتاجه
+
       ->get();
 
     return response()->json($results);
+  }
+  
+  public function edit(Client $client)
+  {
+    $specializations = Specialization::orderBy('name')->get();
+    $educationStages = EducationStage::orderBy('name')->get();
+
+    return view('clients.edit', compact('client', 'specializations', 'educationStages'));
+  }
+
+  // حفظ التعديلات
+  public function update(Request $request, Client $client)
+  {
+    // قواعد التحقق
+    $rules = [
+      'name' => ['required', 'string', 'max:191'],
+      'phone' => [
+        'required',
+        'string',
+        'max:20',
+        // تضمن عدم تكرار رقم التليفون لعميل آخر
+        Rule::unique('clients', 'phone')->ignore($client->id),
+      ],
+      'age' => ['nullable', 'integer', 'min:1', 'max:150'],
+      'specialization_id' => ['nullable', 'integer', 'exists:specializations,id'],
+      'education_stage_id' => ['nullable', 'integer', 'exists:education_stages,id'],
+    ];
+
+    $data = $request->validate($rules);
+
+    // حط القيم على الموديل (fillable لابد أن يتضمن الحقول)
+    $client->update($data);
+
+    return redirect()->route('clients.show', $client->id)
+      ->with('success', 'تم تحديث بيانات العميل بنجاح.');
+  }
+    public function nextId(Request $request)
+  {
+    if (!auth()->check()) {
+      // اختياري: لو حابب ترجع خطأ واضح بدل إعادة توجيه لصفحة login
+      // return response()->json(['success' => false, 'error' => 'unauthenticated'], 401);
+    }
+
+    try {
+      $last = Client::orderBy('id', 'desc')->select('id')->first();
+      $lastId = $last ? intval($last->id) : 0;
+      return response()->json([
+        'success' => true,
+        'last_id' => $lastId
+      ], 200);
+
+    } catch (\Exception $e) {
+      \Log::error('nextId error: ' . $e->getMessage());
+      return response()->json(['success' => false, 'error' => 'خطأ في الحصول على المعرف'], 500);
+    }
   }
 
 }

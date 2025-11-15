@@ -3,7 +3,7 @@
 @section('title', 'تفاصيل الاشتراك')
 
 @section('content')
-            @if (session('success'))
+    @if (session('success'))
         <script>
             document.addEventListener("DOMContentLoaded", () => {
                 showSnackbar("{{ session('success') }}", "success");
@@ -20,7 +20,7 @@
     @endif
 
     <div class="subscription-container">
-      
+
         <div class="card">
 
             <!-- الهيدر -->
@@ -33,9 +33,15 @@
             <div class="section">
                 <h3>👤 بيانات العميل</h3>
                 <div class="box">
+                    <p><strong> المعرف: </strong>{{ $client->id }}</p>
+
                     <p><strong>الاسم:</strong> {{ $client->name }}</p>
                     <p><strong>الموبايل:</strong> {{ $client->phone }}</p>
                     <p><strong>عدد مرات التجديد:</strong> {{ $subscription->renewal_count }}</p>
+                  <a href="{{ route('clients.edit', $client->id) }}" class="btn edit-btn" title="تعديل بيانات العميل">
+                    <span class="edit-ico" aria-hidden="true">✏️</span>
+                    <span class="edit-txt">تعديل</span>
+                </a>
                 </div>
             </div>
             @if (!$subscription->is_active)
@@ -70,6 +76,13 @@
                         <span class="remaining">{{ $subscription->remaining_visits }}</span>
                     </p>
                 </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <a href="{{ route('subscriptions.visits.show', $subscription->id) }}" class="btn"
+                        style="padding:8px 12px; font-size:14px;">
+                        📑 عرض زيارات الاشتراك
+                    </a>
+
+                </div>
             </div>
 
             <!-- Progress Bar -->
@@ -78,7 +91,12 @@
                 $percent = $plan->visits_count > 0 ? round(($used / $plan->visits_count) * 100) : 0;
             @endphp
 
+            <p>
+                <strong>الزيارات المستهلكه:</strong>
+                <span class="used">{{ $used }}</span>
+            </p>
             <div class="progress-section">
+
                 <p><strong>نسبة الاستهلاك:</strong> {{ $percent }}%</p>
                 <div class="progress-bar">
                     <div class="progress-fill" style="width: {{ $percent }}%"></div>
@@ -97,51 +115,75 @@
 
     <script>
         document.getElementById('decrease-btn').addEventListener('click', function() {
+            const btn = this;
+            btn.disabled = true;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = "جاري المعالجة...";
+
             fetch("{{ route('subscriptions.decrease', $subscription->id) }}", {
                     method: "POST",
                     headers: {
                         "X-CSRF-TOKEN": "{{ csrf_token() }}",
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
                     },
                     body: JSON.stringify({})
                 })
                 .then(response => response.json())
                 .then(data => {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+
                     if (data.redirect) {
-                        // لو آخر زيارة أو مفيش زيارات: يعرض رسالة ويحّول للـ index
                         alert(data.message);
                         window.location.href = data.redirect;
                         return;
                     }
 
                     if (data.success) {
-                        // تحديث العدد مباشرة
+                        // تحديث العدد المتبقي
                         document.querySelector('.remaining').textContent = data.remaining_visits;
 
-                        // احسب النسبة من جديد
-                        let used = {{ $plan->visits_count }} - data.remaining_visits;
-                        let percent = Math.round((used / {{ $plan->visits_count }}) * 100);
+                        // حساب وتحديث الزيارات المستهلكة (used) — نفس اللوچي بالباك إند
+                        const total = {{ $plan->visits_count }};
+                        const used = total - data.remaining_visits;
+                        const usedEl = document.querySelector('.used');
+                        if (usedEl) {
+                            usedEl.textContent = used;
+
+                            // إضافة تأثير بصري قصير
+                            usedEl.classList.add('updated');
+                            setTimeout(() => usedEl.classList.remove('updated'), 350);
+                        }
 
                         // عدل في البار
+                        let percent = total > 0 ? Math.round((used / total) * 100) : 0;
                         document.querySelector('.progress-fill').style.width = percent + "%";
-
-                        // عدل نسبة الاستهلاك
                         document.querySelector('.progress-section p').innerHTML =
                             "<strong>نسبة الاستهلاك:</strong> " + percent + "%";
 
                         // رسالة نجاح
-                        document.getElementById('message').style.color = "green";
-                        document.getElementById('message').innerText = "✅ تم خصم زيارة بنجاح";
+                        const msg = document.getElementById('message');
+                        msg.style.color = "green";
+                        msg.innerText = "✅ تم خصم زيارة بنجاح";
+
                     } else {
-                        document.getElementById('message').style.color = "red";
-                        document.getElementById('message').innerText = data.message;
+                        const msg = document.getElementById('message');
+                        msg.style.color = "red";
+                        msg.innerText = data.message || 'حدث خطأ';
                     }
                 })
                 .catch(err => {
                     console.error(err);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    const msg = document.getElementById('message');
+                    msg.style.color = "red";
+                    msg.innerText = "حدث خطأ أثناء الاتصال بالسيرفر.";
                 });
         });
     </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // زر التجديد الأصلي في صفحتك: بدل الفورم المباشر نخلي الزر يفتح المودال
@@ -299,7 +341,7 @@
             animation: fadeInUp 0.6s ease;
         }
 
-    
+
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -395,7 +437,8 @@
             background: #a86f68;
             transform: scale(1.05);
         }
-    /* Snackbar style */
+
+        /* Snackbar style */
         .snackbar {
             position: fixed;
             top: 20px;
@@ -433,6 +476,21 @@
         .snackbar i {
             font-size: 16px;
         }
+
+        .used {
+            font-weight: bold;
+            font-size: 22px;
+            color: #c40000;
+            /* أحمر قوي */
+            transition: transform 0.25s ease, color 0.25s ease;
+        }
+
+        /* تأثير بسيط عند التحديث */
+        .used.updated {
+            transform: scale(1.12);
+        }
+
+
         @keyframes fadeInUp {
             from {
                 opacity: 0;

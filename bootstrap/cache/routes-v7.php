@@ -33,7 +33,47 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::gfKdOtyYA2YX8dcp',
+            '_route' => 'generated::B7p0UzDDpPxFVeJo',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/products/search' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'products.search',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/clients/next-id' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'clients.next_id',
           ),
           1 => NULL,
           2 => 
@@ -222,7 +262,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::TO5z5OOEcBwOctx3',
+            '_route' => 'generated::jFmu5EJE2efDjXhm',
           ),
           1 => NULL,
           2 => 
@@ -258,7 +298,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::WUfyj34fS6Zki5EY',
+            '_route' => 'generated::68F0dMyEm8t4H8LB',
           ),
           1 => NULL,
           2 => 
@@ -370,7 +410,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 
           array (
-            '_route' => 'generated::rq2X9aB8jxB2FXUz',
+            '_route' => 'generated::rDcYNgB28Uk3dSHF',
           ),
           1 => NULL,
           2 => 
@@ -487,26 +527,6 @@ app('router')->setCompiledRoutes(
           0 => 
           array (
             '_route' => 'products.index',
-          ),
-          1 => NULL,
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      '/products/search' => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'products.search',
           ),
           1 => NULL,
           2 => 
@@ -754,6 +774,45 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
+      '/start-booking' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'bookings.start-now',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/bookings/check-ongoing' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'bookings.check_ongoing',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
       '/subscriptions' => 
       array (
         0 => 
@@ -861,6 +920,25 @@ app('router')->setCompiledRoutes(
           0 => 
           array (
             '_route' => 'clients.subscribe',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      '/subscription-visits' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'generated::l8nm9UKrqQhQpK6v',
           ),
           1 => NULL,
           2 => 
@@ -1117,6 +1195,26 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
+      '/search-clients-id' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'clients.search.id',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
       '/expense-drafts' => 
       array (
         0 => 
@@ -1249,6 +1347,23 @@ app('router')->setCompiledRoutes(
           5 => false,
           6 => NULL,
         ),
+        1 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'invoice.index',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
       ),
       '/invoices/print' => 
       array (
@@ -1309,33 +1424,13 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      '/session/create' => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'session.create',
-          ),
-          1 => NULL,
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
       '/start_session' => 
       array (
         0 => 
         array (
           0 => 
           array (
-            '_route' => 'session.store',
+            '_route' => 'session.store.manager',
           ),
           1 => NULL,
           2 => 
@@ -1707,6 +1802,25 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
+      '/shift/end' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'shift.end',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
       '/shift/check-open' => 
       array (
         0 => 
@@ -1767,14 +1881,34 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
+      '/ajax/search' => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'invoices.ajaxSearch',
+          ),
+          1 => NULL,
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
     ),
     2 => 
     array (
-      0 => '{^(?|/products/([^/]++)/add\\-quantity(*:39)|/bookings/(?|([^/]++)(?|/(?|purchases(*:83)|edit(*:94))|(*:102))|same\\-day(*:120)|calendar(*:136)|([^/]++)(?|(*:155)|/(?|start(*:172)|end(*:183)|add\\-purchases(*:205)|purchases(*:222))))|/client/([^/]++)/bookings(*:258)|/([^/]++)/end(*:279)|/s(?|ubscriptions/([^/]++)(?|(*:316)|/(?|decrease(*:336)|renew(*:349)))|essions/(?|([^/]++)(?|/(?|reduce\\-minutes(*:400)|add\\-purchases(*:422)|checkout(*:438)|update\\-time(*:458)|purchases(?|(*:478)|/([^/]++)(*:495))|items(*:509)|delete\\-empty(*:530))|(*:539))|s(?|earch\\-ajax(*:563)|plit(*:575)))|hift(?|s/([^/]++)(*:602)|/end(*:614))|torage/(.*)(*:634))|/clients/([^/]++)(?|/(?|attend(*:673)|barcode(*:688)|invoices(*:704))|(*:713))|/expense\\-drafts/([^/]++)/convert(*:755)|/bookings/halls(*:778)|/invoices/([^/]++)(*:804))/?$}sDu',
+      0 => '{^(?|/products/([^/]++)(?|/add\\-quantity(*:42)|(*:49))|/i(?|mportant\\-products/([^/]++)(*:89)|nvoices(?|\\-(?|test/([^/]++)(*:124)|admin/([^/]++)(*:146))|/([^/]++)(*:164)))|/bookings/(?|([^/]++)(?|/(?|purchases(?|/update(*:221)|(*:229))|cancel(*:244)|edit(*:256))|(*:265))|same\\-day(*:283)|calendar(*:299)|([^/]++)(?|(*:318)|/(?|start(*:335)|end(*:346)|add\\-purchases(*:368)|purchases(*:385)))|halls(*:400))|/client(?|/([^/]++)/bookings(*:437)|s/([^/]++)(?|/(?|attend(*:468)|barcode(*:483)|edit(*:495)|invoices(*:511))|(*:520)))|/s(?|ubscription(?|s/([^/]++)(?|(*:562)|/(?|decrease(*:582)|renew(*:595)|visits(?|(*:612)|/list(*:625))))|\\-visits/([^/]++)/checkout(*:662))|essions/(?|([^/]++)(?|/(?|purchases(?|/(?|update(*:719)|([^/]++)(*:735))|(*:744))|reduce\\-minutes(*:768)|add\\-purchases(*:790)|checkout(*:806)|update\\-time(*:826)|items(*:839)|delete\\-empty(*:860))|(*:869))|s(?|earch\\-ajax(*:893)|plit(*:905)))|hifts/([^/]++)(*:929)|torage/(.*)(*:948))|/expense\\-drafts/([^/]++)/convert(*:990))/?$}sDu',
     ),
     3 => 
     array (
-      39 => 
+      42 => 
       array (
         0 => 
         array (
@@ -1796,7 +1930,162 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      83 => 
+      49 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'products.show',
+          ),
+          1 => 
+          array (
+            0 => 'product',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+        1 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'products.update',
+          ),
+          1 => 
+          array (
+            0 => 'product',
+          ),
+          2 => 
+          array (
+            'PUT' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      89 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'important_products.update',
+          ),
+          1 => 
+          array (
+            0 => 'importantProduct',
+          ),
+          2 => 
+          array (
+            'PUT' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      124 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'invoices.show',
+          ),
+          1 => 
+          array (
+            0 => 'invoice',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      146 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'invoices.admin_show',
+          ),
+          1 => 
+          array (
+            0 => 'invoice',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      164 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'invoices.client.show',
+          ),
+          1 => 
+          array (
+            0 => 'invoice',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      221 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'booking.purchases.update',
+          ),
+          1 => 
+          array (
+            0 => 'booking',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      229 => 
       array (
         0 => 
         array (
@@ -1818,7 +2107,29 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      94 => 
+      244 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'bookings.cancel',
+          ),
+          1 => 
+          array (
+            0 => 'booking',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      256 => 
       array (
         0 => 
         array (
@@ -1841,7 +2152,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      102 => 
+      265 => 
       array (
         0 => 
         array (
@@ -1863,7 +2174,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      120 => 
+      283 => 
       array (
         0 => 
         array (
@@ -1885,7 +2196,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      136 => 
+      299 => 
       array (
         0 => 
         array (
@@ -1907,7 +2218,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      155 => 
+      318 => 
       array (
         0 => 
         array (
@@ -1930,7 +2241,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      172 => 
+      335 => 
       array (
         0 => 
         array (
@@ -1952,7 +2263,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      183 => 
+      346 => 
       array (
         0 => 
         array (
@@ -1974,7 +2285,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      205 => 
+      368 => 
       array (
         0 => 
         array (
@@ -1997,7 +2308,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      222 => 
+      385 => 
       array (
         0 => 
         array (
@@ -2019,7 +2330,28 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      258 => 
+      400 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'halls.store',
+          ),
+          1 => 
+          array (
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      437 => 
       array (
         0 => 
         array (
@@ -2042,407 +2374,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      279 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'end',
-          ),
-          1 => 
-          array (
-            0 => 'booking',
-          ),
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      316 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'subscriptions.show',
-          ),
-          1 => 
-          array (
-            0 => 'id',
-          ),
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => true,
-          6 => NULL,
-        ),
-      ),
-      336 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'subscriptions.decrease',
-          ),
-          1 => 
-          array (
-            0 => 'subscription',
-          ),
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      349 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'subscriptions.renew',
-          ),
-          1 => 
-          array (
-            0 => 'subscription',
-          ),
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      400 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'sessions.reduceMinutes',
-          ),
-          1 => 
-          array (
-            0 => 'session',
-          ),
-          2 => 
-          array (
-            'PUT' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      422 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'purchases.create',
-          ),
-          1 => 
-          array (
-            0 => 'session',
-          ),
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      438 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'sessions.checkout',
-          ),
-          1 => 
-          array (
-            0 => 'session',
-          ),
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      458 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'sessions.updateStartTime',
-          ),
-          1 => 
-          array (
-            0 => 'session',
-          ),
-          2 => 
-          array (
-            'PUT' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      478 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'session.purchase.store',
-          ),
-          1 => 
-          array (
-            0 => 'session',
-          ),
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      495 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'purchases.destroy',
-          ),
-          1 => 
-          array (
-            0 => 'session',
-            1 => 'purchase',
-          ),
-          2 => 
-          array (
-            'DELETE' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => true,
-          6 => NULL,
-        ),
-      ),
-      509 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'sessions.storeItems',
-          ),
-          1 => 
-          array (
-            0 => 'session',
-          ),
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      530 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'sessions.deleteEmpty',
-          ),
-          1 => 
-          array (
-            0 => 'session',
-          ),
-          2 => 
-          array (
-            'DELETE' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      539 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'session.show',
-          ),
-          1 => 
-          array (
-            0 => 'session',
-          ),
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => true,
-          6 => NULL,
-        ),
-      ),
-      563 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'sessions.searchAjax',
-          ),
-          1 => 
-          array (
-          ),
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      575 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'sessions.split',
-          ),
-          1 => 
-          array (
-          ),
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      602 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'shift.show',
-          ),
-          1 => 
-          array (
-            0 => 'shift',
-          ),
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => true,
-          6 => NULL,
-        ),
-      ),
-      614 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'shift.end',
-          ),
-          1 => 
-          array (
-          ),
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      634 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'storage.local',
-          ),
-          1 => 
-          array (
-            0 => 'path',
-          ),
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => true,
-          6 => NULL,
-        ),
-      ),
-      673 => 
+      468 => 
       array (
         0 => 
         array (
@@ -2464,7 +2396,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      688 => 
+      483 => 
       array (
         0 => 
         array (
@@ -2487,7 +2419,30 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      704 => 
+      495 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'clients.edit',
+          ),
+          1 => 
+          array (
+            0 => 'client',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      511 => 
       array (
         0 => 
         array (
@@ -2510,7 +2465,7 @@ app('router')->setCompiledRoutes(
           6 => NULL,
         ),
       ),
-      713 => 
+      520 => 
       array (
         0 => 
         array (
@@ -2532,8 +2487,474 @@ app('router')->setCompiledRoutes(
           5 => true,
           6 => NULL,
         ),
+        1 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'clients.update',
+          ),
+          1 => 
+          array (
+            0 => 'client',
+          ),
+          2 => 
+          array (
+            'PUT' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
       ),
-      755 => 
+      562 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'subscriptions.show',
+          ),
+          1 => 
+          array (
+            0 => 'id',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      582 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'subscriptions.decrease',
+          ),
+          1 => 
+          array (
+            0 => 'subscription',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      595 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'subscriptions.renew',
+          ),
+          1 => 
+          array (
+            0 => 'subscription',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      612 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'subscriptions.visits.show',
+          ),
+          1 => 
+          array (
+            0 => 'subscription',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      625 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'subscriptions.visits.list',
+          ),
+          1 => 
+          array (
+            0 => 'subscription',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      662 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'subscription-visits.checkout',
+          ),
+          1 => 
+          array (
+            0 => 'visit',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      719 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'sessionPurchases.update',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      735 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'purchases.destroy',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+            1 => 'purchase',
+          ),
+          2 => 
+          array (
+            'DELETE' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      744 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'session.purchase.store',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      768 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'sessions.reduceMinutes',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+          ),
+          2 => 
+          array (
+            'PUT' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      790 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'purchases.create',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      806 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'sessions.checkout',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      826 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'sessions.updateStartTime',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+          ),
+          2 => 
+          array (
+            'PUT' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      839 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'sessions.storeItems',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      860 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'sessions.deleteEmpty',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+          ),
+          2 => 
+          array (
+            'DELETE' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      869 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'session.show',
+          ),
+          1 => 
+          array (
+            0 => 'session',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      893 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'sessions.searchAjax',
+          ),
+          1 => 
+          array (
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      905 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'sessions.split',
+          ),
+          1 => 
+          array (
+          ),
+          2 => 
+          array (
+            'POST' => 0,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => false,
+          6 => NULL,
+        ),
+      ),
+      929 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'shift.show',
+          ),
+          1 => 
+          array (
+            0 => 'shift',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      948 => 
+      array (
+        0 => 
+        array (
+          0 => 
+          array (
+            '_route' => 'storage.local',
+          ),
+          1 => 
+          array (
+            0 => 'path',
+          ),
+          2 => 
+          array (
+            'GET' => 0,
+            'HEAD' => 1,
+          ),
+          3 => NULL,
+          4 => false,
+          5 => true,
+          6 => NULL,
+        ),
+      ),
+      990 => 
       array (
         0 => 
         array (
@@ -2552,50 +2973,6 @@ app('router')->setCompiledRoutes(
           3 => NULL,
           4 => false,
           5 => false,
-          6 => NULL,
-        ),
-      ),
-      778 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'halls.store',
-          ),
-          1 => 
-          array (
-          ),
-          2 => 
-          array (
-            'POST' => 0,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => false,
-          6 => NULL,
-        ),
-      ),
-      804 => 
-      array (
-        0 => 
-        array (
-          0 => 
-          array (
-            '_route' => 'invoices.show',
-          ),
-          1 => 
-          array (
-            0 => 'invoice',
-          ),
-          2 => 
-          array (
-            'GET' => 0,
-            'HEAD' => 1,
-          ),
-          3 => NULL,
-          4 => false,
-          5 => true,
           6 => NULL,
         ),
         1 => 
@@ -2651,7 +3028,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::gfKdOtyYA2YX8dcp' => 
+    'generated::B7p0UzDDpPxFVeJo' => 
     array (
       'methods' => 
       array (
@@ -2680,7 +3057,83 @@ app('router')->setCompiledRoutes(
                         \'exception\' => $exception,
                     ]), status: $exception ? 500 : 200);
                 }";s:5:"scope";s:54:"Illuminate\\Foundation\\Configuration\\ApplicationBuilder";s:4:"this";N;s:4:"self";s:32:"00000000000002d70000000000000000";}}',
-        'as' => 'generated::gfKdOtyYA2YX8dcp',
+        'as' => 'generated::B7p0UzDDpPxFVeJo',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'products.search' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'products/search',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\ProductController@search',
+        'controller' => 'App\\Http\\Controllers\\ProductController@search',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'products.search',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'clients.next_id' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'clients/next-id',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\ClientController@nextId',
+        'controller' => 'App\\Http\\Controllers\\ClientController@nextId',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'clients.next_id',
       ),
       'fallback' => false,
       'defaults' => 
@@ -2829,9 +3282,9 @@ app('router')->setCompiledRoutes(
           3 => 'verified',
           4 => 'admin',
         ),
-        'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:48:"function () {
+        'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:50:"function () {
     return \\view(\'dashboard\');
-  }";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000002d80000000000000000";}}',
+  }";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000002e60000000000000000";}}',
         'namespace' => NULL,
         'prefix' => '',
         'where' => 
@@ -2979,7 +3432,7 @@ app('router')->setCompiledRoutes(
         array (
           0 => 'web',
         ),
-        'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:171:"function (\\Illuminate\\Http\\Request $request) {
+        'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:174:"function (\\Illuminate\\Http\\Request $request) {
   $error = $request->get(\'message\', \'حدث خطأ غير متوقع\');
   return \\view(\'error.create\', \\compact(\'error\'));
 }";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000002d10000000000000000";}}',
@@ -3018,10 +3471,10 @@ app('router')->setCompiledRoutes(
         array (
           0 => 'web',
         ),
-        'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:216:"function (\\Illuminate\\Http\\Request $request) {
-    $error = \\session(\'message\', \'حدث خطأ غير متوقع\'); // يجلب الرسالة من الـ session
-    return \\view(\'error.admin\', \\compact(\'error\'));
-}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000002e20000000000000000";}}',
+        'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:215:"function (\\Illuminate\\Http\\Request $request) {
+  $error = \\session(\'message\', \'حدث خطأ غير متوقع\'); // يجلب الرسالة من الـ session
+  return \\view(\'error.admin\', \\compact(\'error\'));
+}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"00000000000002dd0000000000000000";}}',
         'namespace' => NULL,
         'prefix' => '',
         'where' => 
@@ -3081,7 +3534,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::TO5z5OOEcBwOctx3' => 
+    'generated::jFmu5EJE2efDjXhm' => 
     array (
       'methods' => 
       array (
@@ -3102,7 +3555,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::TO5z5OOEcBwOctx3',
+        'as' => 'generated::jFmu5EJE2efDjXhm',
       ),
       'fallback' => false,
       'defaults' => 
@@ -3196,7 +3649,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::WUfyj34fS6Zki5EY' => 
+    'generated::68F0dMyEm8t4H8LB' => 
     array (
       'methods' => 
       array (
@@ -3218,7 +3671,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::WUfyj34fS6Zki5EY',
+        'as' => 'generated::68F0dMyEm8t4H8LB',
       ),
       'fallback' => false,
       'defaults' => 
@@ -3386,7 +3839,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'generated::rq2X9aB8jxB2FXUz' => 
+    'generated::rDcYNgB28Uk3dSHF' => 
     array (
       'methods' => 
       array (
@@ -3407,7 +3860,7 @@ app('router')->setCompiledRoutes(
         'where' => 
         array (
         ),
-        'as' => 'generated::rq2X9aB8jxB2FXUz',
+        'as' => 'generated::rDcYNgB28Uk3dSHF',
       ),
       'fallback' => false,
       'defaults' => 
@@ -3610,6 +4063,81 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'products.show' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'products/{product}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\ProductController@show',
+        'controller' => 'App\\Http\\Controllers\\ProductController@show',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'products.show',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'products.update' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'PUT',
+      ),
+      'uri' => 'products/{product}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\ProductController@update',
+        'controller' => 'App\\Http\\Controllers\\ProductController@update',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'products.update',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'products.index' => 
     array (
       'methods' => 
@@ -3633,44 +4161,6 @@ app('router')->setCompiledRoutes(
         array (
         ),
         'as' => 'products.index',
-      ),
-      'fallback' => false,
-      'defaults' => 
-      array (
-      ),
-      'wheres' => 
-      array (
-      ),
-      'bindingFields' => 
-      array (
-      ),
-      'lockSeconds' => NULL,
-      'waitSeconds' => NULL,
-      'withTrashed' => false,
-    ),
-    'products.search' => 
-    array (
-      'methods' => 
-      array (
-        0 => 'GET',
-        1 => 'HEAD',
-      ),
-      'uri' => 'products/search',
-      'action' => 
-      array (
-        'middleware' => 
-        array (
-          0 => 'web',
-          1 => 'auth',
-        ),
-        'uses' => 'App\\Http\\Controllers\\ProductController@search',
-        'controller' => 'App\\Http\\Controllers\\ProductController@search',
-        'namespace' => NULL,
-        'prefix' => '',
-        'where' => 
-        array (
-        ),
-        'as' => 'products.search',
       ),
       'fallback' => false,
       'defaults' => 
@@ -3746,6 +4236,117 @@ app('router')->setCompiledRoutes(
         array (
         ),
         'as' => 'important_products.store',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'important_products.update' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'PUT',
+      ),
+      'uri' => 'important-products/{importantProduct}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\ProductController@updateImportant',
+        'controller' => 'App\\Http\\Controllers\\ProductController@updateImportant',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'important_products.update',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'booking.purchases.update' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'bookings/{booking}/purchases/update',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\BookingPurchaseController@updatePurchases',
+        'controller' => 'App\\Http\\Controllers\\BookingPurchaseController@updatePurchases',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'booking.purchases.update',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'bookings.cancel' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'bookings/{booking}/cancel',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\BookingController@cancel',
+        'controller' => 'App\\Http\\Controllers\\BookingController@cancel',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'bookings.cancel',
       ),
       'fallback' => false,
       'defaults' => 
@@ -4176,6 +4777,81 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'bookings.start-now' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'start-booking',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\BookingController@startBookingNow',
+        'controller' => 'App\\Http\\Controllers\\BookingController@startBookingNow',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'bookings.start-now',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'bookings.check_ongoing' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'bookings/check-ongoing',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\BookingController@checkOngoing',
+        'controller' => 'App\\Http\\Controllers\\BookingController@checkOngoing',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'bookings.check_ongoing',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'bookings.edit' => 
     array (
       'methods' => 
@@ -4552,43 +5228,6 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'end' => 
-    array (
-      'methods' => 
-      array (
-        0 => 'POST',
-      ),
-      'uri' => '{booking}/end',
-      'action' => 
-      array (
-        'middleware' => 
-        array (
-          0 => 'web',
-          1 => 'auth',
-        ),
-        'uses' => 'App\\Http\\Controllers\\BookingController@end',
-        'controller' => 'App\\Http\\Controllers\\BookingController@end',
-        'namespace' => NULL,
-        'prefix' => '',
-        'where' => 
-        array (
-        ),
-        'as' => 'end',
-      ),
-      'fallback' => false,
-      'defaults' => 
-      array (
-      ),
-      'wheres' => 
-      array (
-      ),
-      'bindingFields' => 
-      array (
-      ),
-      'lockSeconds' => NULL,
-      'waitSeconds' => NULL,
-      'withTrashed' => false,
-    ),
     'subscriptions.index' => 
     array (
       'methods' => 
@@ -4950,6 +5589,159 @@ app('router')->setCompiledRoutes(
         array (
         ),
         'as' => 'subscriptions.renew',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'generated::l8nm9UKrqQhQpK6v' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'subscription-visits',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\SubscriptionVisitController@store',
+        'controller' => 'App\\Http\\Controllers\\SubscriptionVisitController@store',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'generated::l8nm9UKrqQhQpK6v',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'subscriptions.visits.show' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'subscriptions/{subscription}/visits',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\SubscriptionVisitController@showVisits',
+        'controller' => 'App\\Http\\Controllers\\SubscriptionVisitController@showVisits',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'subscriptions.visits.show',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'subscriptions.visits.list' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'subscriptions/{subscription}/visits/list',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\SubscriptionVisitController@visitsList',
+        'controller' => 'App\\Http\\Controllers\\SubscriptionVisitController@visitsList',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'subscriptions.visits.list',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'subscription-visits.checkout' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'POST',
+      ),
+      'uri' => 'subscription-visits/{visit}/checkout',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+          2 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\SubscriptionVisitController@checkout',
+        'controller' => 'App\\Http\\Controllers\\SubscriptionVisitController@checkout',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'subscription-visits.checkout',
       ),
       'fallback' => false,
       'defaults' => 
@@ -5542,6 +6334,119 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'clients.search.id' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'search-clients-id',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\ClientController@searchId',
+        'controller' => 'App\\Http\\Controllers\\ClientController@searchId',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'clients.search.id',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'clients.edit' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'clients/{client}/edit',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\ClientController@edit',
+        'controller' => 'App\\Http\\Controllers\\ClientController@edit',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'clients.edit',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'clients.update' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'PUT',
+      ),
+      'uri' => 'clients/{client}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\ClientController@update',
+        'controller' => 'App\\Http\\Controllers\\ClientController@update',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'clients.update',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'expense-drafts.index' => 
     array (
       'methods' => 
@@ -5960,30 +6865,28 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'session.create' => 
+    'sessionPurchases.update' => 
     array (
       'methods' => 
       array (
-        0 => 'GET',
-        1 => 'HEAD',
+        0 => 'POST',
       ),
-      'uri' => 'session/create',
+      'uri' => 'sessions/{session}/purchases/update',
       'action' => 
       array (
         'middleware' => 
         array (
           0 => 'web',
           1 => 'auth',
-          2 => 'auth',
         ),
-        'uses' => 'App\\Http\\Controllers\\SationController@create',
-        'controller' => 'App\\Http\\Controllers\\SationController@create',
+        'uses' => 'App\\Http\\Controllers\\SessionPurchaseController@updatePurchases',
+        'controller' => 'App\\Http\\Controllers\\SessionPurchaseController@updatePurchases',
         'namespace' => NULL,
         'prefix' => '',
         'where' => 
         array (
         ),
-        'as' => 'session.create',
+        'as' => 'sessionPurchases.update',
       ),
       'fallback' => false,
       'defaults' => 
@@ -5999,7 +6902,7 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
-    'session.store' => 
+    'session.store.manager' => 
     array (
       'methods' => 
       array (
@@ -6014,14 +6917,14 @@ app('router')->setCompiledRoutes(
           1 => 'auth',
           2 => 'auth',
         ),
-        'uses' => 'App\\Http\\Controllers\\SationController@store',
-        'controller' => 'App\\Http\\Controllers\\SationController@store',
+        'uses' => 'App\\Http\\Controllers\\SationController@storeFromManager',
+        'controller' => 'App\\Http\\Controllers\\SationController@storeFromManager',
         'namespace' => NULL,
         'prefix' => '',
         'where' => 
         array (
         ),
-        'as' => 'session.store',
+        'as' => 'session.store.manager',
       ),
       'fallback' => false,
       'defaults' => 
@@ -6546,7 +7449,7 @@ app('router')->setCompiledRoutes(
         'uses' => 'O:55:"Laravel\\SerializableClosure\\UnsignedSerializableClosure":1:{s:12:"serializable";O:46:"Laravel\\SerializableClosure\\Serializers\\Native":5:{s:3:"use";a:0:{}s:8:"function";s:50:"function () {
 
   return \\view(\'main.create\');
-}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"000000000000033f0000000000000000";}}',
+}";s:5:"scope";s:37:"Illuminate\\Routing\\RouteFileRegistrar";s:4:"this";N;s:4:"self";s:32:"000000000000034e0000000000000000";}}',
         'namespace' => NULL,
         'prefix' => '',
         'where' => 
@@ -7375,6 +8278,44 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'invoice.index' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'invoices',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\InvoiceController@index',
+        'controller' => 'App\\Http\\Controllers\\InvoiceController@index',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'invoice.index',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'invoices.show' => 
     array (
       'methods' => 
@@ -7382,7 +8323,7 @@ app('router')->setCompiledRoutes(
         0 => 'GET',
         1 => 'HEAD',
       ),
-      'uri' => 'invoices/{invoice}',
+      'uri' => 'invoices-test/{invoice}',
       'action' => 
       array (
         'middleware' => 
@@ -7398,6 +8339,82 @@ app('router')->setCompiledRoutes(
         array (
         ),
         'as' => 'invoices.show',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'invoices.admin_show' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'invoices-admin/{invoice}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\InvoiceController@admin_show',
+        'controller' => 'App\\Http\\Controllers\\InvoiceController@admin_show',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'invoices.admin_show',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
+    'invoices.client.show' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'invoices/{invoice}',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\InvoiceController@client_show',
+        'controller' => 'App\\Http\\Controllers\\InvoiceController@client_show',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'invoices.client.show',
       ),
       'fallback' => false,
       'defaults' => 
@@ -7451,6 +8468,44 @@ app('router')->setCompiledRoutes(
       'waitSeconds' => NULL,
       'withTrashed' => false,
     ),
+    'invoices.ajaxSearch' => 
+    array (
+      'methods' => 
+      array (
+        0 => 'GET',
+        1 => 'HEAD',
+      ),
+      'uri' => 'ajax/search',
+      'action' => 
+      array (
+        'middleware' => 
+        array (
+          0 => 'web',
+          1 => 'auth',
+        ),
+        'uses' => 'App\\Http\\Controllers\\InvoiceController@ajaxSearch',
+        'controller' => 'App\\Http\\Controllers\\InvoiceController@ajaxSearch',
+        'namespace' => NULL,
+        'prefix' => '',
+        'where' => 
+        array (
+        ),
+        'as' => 'invoices.ajaxSearch',
+      ),
+      'fallback' => false,
+      'defaults' => 
+      array (
+      ),
+      'wheres' => 
+      array (
+      ),
+      'bindingFields' => 
+      array (
+      ),
+      'lockSeconds' => NULL,
+      'waitSeconds' => NULL,
+      'withTrashed' => false,
+    ),
     'storage.local' => 
     array (
       'methods' => 
@@ -7467,7 +8522,7 @@ app('router')->setCompiledRoutes(
                         $config,
                         $isProduction
                     ))($request, $path);
-                }";s:5:"scope";s:47:"Illuminate\\Filesystem\\FilesystemServiceProvider";s:4:"this";N;s:4:"self";s:32:"00000000000002dd0000000000000000";}}',
+                }";s:5:"scope";s:47:"Illuminate\\Filesystem\\FilesystemServiceProvider";s:4:"this";N;s:4:"self";s:32:"00000000000002dc0000000000000000";}}',
         'as' => 'storage.local',
       ),
       'fallback' => false,

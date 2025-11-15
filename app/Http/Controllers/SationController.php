@@ -10,6 +10,8 @@ use App\Models\Shift;
 use App\Models\SystemAction;
 use App\Models\Visit;
 use App\Services\ShiftService;
+use App\Models\Hall;
+use App\Models\Booking;
 use App\Support\InvoiceNumber;
 use Auth;
 use Carbon\Carbon;
@@ -361,13 +363,184 @@ public function split(Request $request)
       ->where('status', 'active') // فلتر للجلسات النشطة فقط
       ->latest()
       ->get();
+    $halls = Hall::all();
+     $sessions_count = Sation::where('status', 'active')->sum('persons');
 
-    return view('session.index-manager', compact('sessions', 'query'));
+    $private_sessions_count = Booking::where('status', 'in_progress')->count();
+    return view('session.index-manager', compact('sessions', 'query', "halls", "private_sessions_count", "sessions_count"));
   }
-  public function create()
+   // public function create()
+  // {
+  //   return view("session.create");
+  // }
+  public function storeFromManager(Request $request)
   {
-    return view("session.create");
+    // input validated phone
+    $request->validate([
+      'name' => [
+        'required',
+        'string',
+        'regex:/^[\pL\s]+$/u',
+        'min:3',
+        'max:50',
+      ],
+      'phone' => [
+        'required',
+        'regex:/^(010|011|012|015)[0-9]{8}$/'
+      ],
+      "persons" => [
+        "required",
+      ]
+    ], [
+      'name.required' => 'من فضلك أدخل اسم العميل',
+      'name.string' => 'الاسم يجب أن يكون نصًا',
+      'name.regex' => 'الاسم يجب أن يحتوي على حروف فقط',
+      'name.min' => 'الاسم يجب أن لا يقل عن 3 أحرف',
+      'name.max' => 'الاسم يجب أن لا يزيد عن 50 حرفًا',
+      'phone.required' => 'من فضلك أدخل رقم الهاتف',
+      'phone.regex' => ' ادخل رقم مصري صحيح (11 رقم ويبدأ بـ 010 أو 011 أو 012 أو 015)',
+      'persons.required' => '',
+    ]);
+
+    $phone = $request->input('phone');
+    $name = $request->input('name');
+    $persons = $request->input('persons');
+
+    // helper to check if request expects JSON (AJAX)
+    $isJson = $request->wantsJson() || $request->ajax();
+
+    try {
+      // حاول الحصول على العميل مرة واحدة
+      $client = Client::where('phone', $phone)->first();
+
+      if ($client) {
+        // تحقق لو لدى العميل جلسة نشطة
+        $hasActive = Sation::where('client_id', $client->id)
+          ->where('status', 'active')
+          ->exists();
+
+        if ($hasActive) {
+          $msg = 'هذا العميل (' . $client->name . ') لديه جلسة نشطة بالفعل';
+
+          if ($isJson) {
+            return response()->json([
+              'success' => false,
+              'error' => $msg,
+            ], 409); // Conflict
+          }
+
+          return back()->with('error', $msg);
+        }
+
+        // لا توجد جلسة نشطة -> إنشاء جلسة جديدة للعميل الموجود
+        $session = Sation::create([
+          'client_id' => $client->id,
+          'start_time' => now(),
+          'persons' => $persons,
+          'status' => 'active',
+        ]);
+
+        // سجل العملية
+        SystemAction::create([
+          'user_id' => Auth::id(),
+          'action' => SystemActionType::START_SESSION->value,
+          'actionable_type' => Sation::class,
+          'actionable_id' => $session->id,
+          'note' => "بدء جلسة جديدة للعميل: {$client->name} - هاتف: {$client->phone}",
+          'meta' => json_encode([
+            'persons' => $persons,
+            'client_id' => $client->id,
+            'client_phone' => $client->phone,
+          ]),
+          'ip' => request()->ip(),
+          'source' => 'web',
+        ]);
+
+        if ($isJson) {
+          return response()->json([
+            'success' => true,
+            'message' => 'تم بدء الجلسة بنجاح',
+            'session' => $session,
+          ], 201);
+        }
+
+        return redirect()->route('session.index-manager')->with('success', 'تم إضافة الجلسة بنجاح');
+      }
+
+$client = Client::create([
+    'phone' => $phone,
+    'name' => $name,
+    'age' => $request->input('age'),
+    'specialization_id' => $request->input('specialization_id'),
+    'education_stage_id' => $request->input('education_stage_id'),
+]);
+
+      // Log → إضافة عميل جديد
+      SystemAction::create([
+        'user_id' => Auth::id(),
+        'action' => SystemActionType::ADD_NEW_CLIENT->value,
+        'actionable_type' => Client::class,
+        'actionable_id' => $client->id,
+        'note' => "تم إضافة عميل جديد: {$client->name} - هاتف: {$client->phone}",
+        'meta' => json_encode([
+          'client_id' => $client->id,
+          'phone' => $client->phone,
+          'name' => $client->name,
+        ]),
+        'ip' => request()->ip(),
+        'source' => 'web',
+      ]);
+
+      // 2. إنشاء جلسة
+      $session = Sation::create([
+        'client_id' => $client->id,
+        'persons' => $persons,
+        'start_time' => now(),
+        'status' => 'active',
+      ]);
+
+      // Log → بدء جلسة جديدة
+      SystemAction::create([
+        'user_id' => Auth::id(),
+        'action' => SystemActionType::START_SESSION->value,
+        'actionable_type' => Sation::class,
+        'actionable_id' => $session->id,
+        'note' => "بدء جلسة جديدة للعميل: {$client->name}",
+        'meta' => json_encode([
+          'persons' => $persons,
+          'client_id' => $client->id,
+        ]),
+        'ip' => request()->ip(),
+        'source' => 'web',
+      ]);
+
+      if ($isJson) {
+        return response()->json([
+          'success' => true,
+          'message' => 'تم بدء الجلسة بنجاح',
+          'session' => $session,
+        ], 201);
+      }
+
+      return redirect()->route('session.index-manager')->with('success', 'تم إضافة الجلسة بنجاح');
+    } catch (\Exception $e) {
+      // لو حدث استثناء، نرجع JSON مع كود 500 لو AJAX، وإلا نذهب لصفحة الخطأ كما سابقًا
+      \Log::error('Session store error: ' . $e->getMessage(), ['exception' => $e]);
+
+      if ($isJson) {
+        return response()->json([
+          'success' => false,
+          'error' => 'حدث خطأ أثناء معالجة الطلب، الرجاء المحاولة لاحقًا'
+        ], 500);
+      }
+
+      return to_route("error.create");
+    }
   }
+
+
+
+  
   public function store(Request $request)
   {
 
@@ -816,7 +989,6 @@ public function split(Request $request)
           });
         });
       })
-      ->limit(15)
       ->get();
 
     return response()->json($sessions);

@@ -5,6 +5,10 @@ use App\Http\Controllers\BookingPurchaseController;
 
 
 Route::middleware('auth', )->group(function () {
+      Route::post('/bookings/{booking}/purchases/update', [BookingPurchaseController::class, 'updatePurchases'])
+    ->name('booking.purchases.update');
+  Route::post('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])
+    ->name('bookings.cancel');
 Route::post('bookings/check-conflict', [BookingController::class, 'checkConflict'])
     ->name('bookings.check_conflict');
   Route::get('/bookings/by-date', [BookingController::class, 'byDate'])->name('bookings.byDate');
@@ -29,6 +33,10 @@ Route::get('bookings/estimate', [BookingController::class, 'estimate'])
 
   // حفظ الحجز الجديد (store)
   Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::post('/start-booking', [BookingController::class, 'startBookingNow'])->name('bookings.start-now');
+
+  Route::get('/bookings/check-ongoing', [BookingController::class, 'checkOngoing'])->name('bookings.check_ongoing');
+
 
   // // تعديل حجز موجود
   
@@ -49,7 +57,6 @@ Route::put('bookings/{booking}', [BookingController::class, 'update'])->name('bo
   Route::get('/bookings/{booking}/add-purchases', [BookingPurchaseController::class, 'create'])->name('booking.purchases.create');
   Route::post('/bookings/{booking}/purchases', [BookingPurchaseController::class, 'storeItem'])->name('booking.purchase.store');
 
-  Route::post('/{booking}/end', [BookingController::class, 'end'])->name('end');
 
 
 });

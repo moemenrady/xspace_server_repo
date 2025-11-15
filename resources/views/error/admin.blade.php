@@ -1,6 +1,6 @@
 @extends('layouts.app_page')
 
-@section('page_title', 'خطأ في البيانات الاساسيه للنظام')
+@section('title', 'خطأ في البيانات الاساسيه للنظام')
 
 @section('content')
     <style>

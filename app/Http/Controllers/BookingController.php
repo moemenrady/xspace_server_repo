@@ -9,6 +9,7 @@ use App\Models\Hall;
 use App\Models\ImportantProduct;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\Product;
 use App\Models\Shift;
 use App\Models\VenuePricing;
 use App\Services\BookingConflictService;
@@ -21,6 +22,8 @@ use Illuminate\Container\Attributes\Auth;
 use Illuminate\Http\Request;
 use Exception;
 use Illuminate\Support\Facades\Schema;
+use App\Models\ShiftAction;
+use Illuminate\Http\RedirectResponse;
 
 class BookingController extends Controller
 {
@@ -166,8 +169,9 @@ class BookingController extends Controller
     }
 
     $bookings = $query->latest()->paginate(10)->withQueryString();
+    $active_bookings_count = Booking::where('status', 'in_progress')->count();
 
-    return view('bookings.index-manager', compact('bookings'));
+    return view('bookings.index-manager', compact('bookings', 'active_bookings_count'));
   }
 
   public function index()
@@ -256,8 +260,11 @@ class BookingController extends Controller
 {
     try {
         $query = Booking::with(['hall', 'client'])
-            ->whereNotIn('status', ['finished', 'cancelled']);
+    ->whereNotIn('status', ['finished', 'cancelled'])
+    ->orderByDesc('created_at');
 
+
+        // 🟢 لو فيه بحث
         if ($request->filled('q')) {
             $q = $request->q;
             $query->where(function ($sub) use ($q) {
@@ -275,6 +282,7 @@ class BookingController extends Controller
             });
         }
 
+        // 🗓️ الفلاتر الزمنية
         if ($request->filled('from')) {
             $query->whereDate('start_at', '>=', $request->from);
         }
@@ -282,32 +290,41 @@ class BookingController extends Controller
             $query->whereDate('start_at', '<=', $request->to);
         }
 
+        // 🏠 القاعات
         if ($request->filled('halls')) {
             $halls = is_array($request->halls) ? $request->halls : [$request->halls];
             $query->whereIn('hall_id', $halls);
         }
 
+        // 📊 الحالات
         if ($request->filled('statuses')) {
             $statuses = is_array($request->statuses) ? $request->statuses : [$request->statuses];
             $query->whereIn('status', $statuses);
         }
 
-        $bookings = $query->orderBy('start_at', 'asc')->get();
+        // 💡 جلب الحجوزات مرتبة بالوقت
+        $bookings = $query->orderBy('start_at', 'desc')->get();
 
+        // 🧩 لو مفيش كويري (يعني الصفحة أول ما تفتح)
+        if (!$request->filled('q')) {
+            // نجيب الأحدث فقط من كل مجموعة مكررة
+            $bookings = $bookings->groupBy(function ($b) {
+                // ممكن تميز المكرر بناءً على العميل أو العنوان
+                return $b->client_id ?: $b->title;
+            })->map(function ($group) {
+                return $group->sortByDesc('start_at')->first();
+            })->values();
+        }
+
+        // 🧮 تصنيف الحجوزات حسب الحالة
         $inProgress = $bookings->filter(fn($b) => $b->status === 'in_progress');
         $due        = $bookings->filter(fn($b) => $b->status === 'due');
         $scheduled  = $bookings->filter(fn($b) => $b->status === 'scheduled');
 
-        $uniqueScheduled = $scheduled->filter(fn($b) => $b->client_id !== null)
-                                     ->unique('client_id')
-                                     ->values();
+        // 🧠 ترتيب العرض النهائي
+        $finalBookings = $inProgress->concat($due)->concat($scheduled);
 
-        $withoutClientScheduled = $scheduled->filter(fn($b) => $b->client_id === null);
-
-        $finalScheduled = $uniqueScheduled->concat($withoutClientScheduled);
-
-        $finalBookings = $inProgress->concat($due)->concat($finalScheduled);
-
+        // 🔧 تهيئة البيانات للإرسال
         $data = $finalBookings->map(function ($b) {
             return [
                 'id' => $b->id,
@@ -333,6 +350,7 @@ class BookingController extends Controller
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
+
 
 
 
@@ -714,46 +732,46 @@ class BookingController extends Controller
     $openShift = Shift::where('user_id', $user->id)->whereNull('end_time')->first();
     $isAdmin = $user->hasRole('admin');
     // validate (بقي كما عندك)
-  $data = $request->validate([
-    'hall_id' => 'required|exists:halls,id',
-    'client_id' => 'nullable|exists:clients,id',
-    'client_name' => 'nullable|string|min:3|max:50|required_without:client_id',
-    'client_phone' => ['nullable', 'regex:/^(010|011|012|015)[0-9]{8}$/', 'required_without:client_id'],
-    'title' => 'nullable|string|max:255',
-    'attendees' => [
+    $data = $request->validate([
+      'hall_id' => 'required|exists:halls,id',
+      'client_id' => 'nullable|exists:clients,id',
+      'client_name' => 'nullable|string|min:3|max:50|required_without:client_id',
+      'client_phone' => ['nullable', 'regex:/^(010|011|012|015)[0-9]{8}$/', 'required_without:client_id'],
+      'title' => 'nullable|string|max:255',
+      'attendees' => [
         'required',
         'integer',
         'min:1',
         function ($attr, $val, $fail) use ($request) {
-            $hall = Hall::find($request->hall_id);
-            if ($hall && $val > $hall->max_capacity) {
-                $fail("عدد الأفراد لا يمكن أن يتخطى السعة القصوى للقاعة ({$hall->max_capacity}).");
-            }
+          $hall = Hall::find($request->hall_id);
+          if ($hall && $val > $hall->max_capacity) {
+            $fail("عدد الأفراد لا يمكن أن يتخطى السعة القصوى للقاعة ({$hall->max_capacity}).");
+          }
         }
-    ],
-    'start_at_full' => 'required|date|after:now',
-    'end_at_full' => 'required|date|after:start_at_full',
-    'duration_minutes' => 'required|integer|min:30',
-    'status' => 'nullable|in:scheduled,due,in_progress,finished,cancelled',
-    'deposit' => 'nullable|numeric|min:0',
-    
-    // recurrence
-    'recurrence_type' => 'nullable|in:none,weekly,biweekly,monthly,custom',
-    'recurrence_interval' => 'nullable|integer|min:1',
-    'recurrence_end_date' => 'nullable|date|after_or_equal:start_at_full',
-], [
-    'client_name.required_without' => 'من فضلك أدخل اسم العميل إذا لم تختَر عميلًا موجودًا',
-    'client_phone.required_without' => 'من فضلك أدخل رقم الهاتف إذا لم تختَر عميلًا موجودًا',
-    'client_phone.regex' => 'رقم الهاتف يجب أن يكون مصري صحيح (11 رقم ويبدأ بـ 010 أو 011 أو 012 أو 015)',
-    'attendees.required' => 'عدد الأفراد مطلوب',
-    'attendees.integer' => 'عدد الأفراد يجب أن يكون رقم صحيح',
-    'attendees.min' => 'عدد الأفراد يجب أن يكون على الأقل 1',
-    'start_at_full.after' => 'تاريخ البداية يجب أن يكون بعد الآن',
-    'end_at_full.after' => 'تاريخ النهاية يجب أن يكون بعد بداية الحجز',
-    'recurrence_type.in' => 'نوع التكرار غير صالح',
-    'recurrence_interval.min' => 'المسافة يجب أن تكون على الأقل 1',
-    'recurrence_end_date.after_or_equal' => 'تاريخ انتهاء التكرار يجب أن يكون بعد أو في نفس يوم بداية الحجز',
-]);
+      ],
+      'start_at_full' => 'required|date|after:now',
+      'end_at_full' => 'required|date|after:start_at_full',
+      'duration_minutes' => 'required|integer|min:30',
+      'status' => 'nullable|in:scheduled,due,in_progress,finished,cancelled',
+      'deposit' => 'nullable|numeric|min:0',
+
+      // recurrence
+      'recurrence_type' => 'nullable|in:none,weekly,biweekly,monthly,custom',
+      'recurrence_interval' => 'nullable|integer|min:1',
+      'recurrence_end_date' => 'nullable|date|after_or_equal:start_at_full',
+    ], [
+      'client_name.required_without' => 'من فضلك أدخل اسم العميل إذا لم تختَر عميلًا موجودًا',
+      'client_phone.required_without' => 'من فضلك أدخل رقم الهاتف إذا لم تختَر عميلًا موجودًا',
+      'client_phone.regex' => 'رقم الهاتف يجب أن يكون مصري صحيح (11 رقم ويبدأ بـ 010 أو 011 أو 012 أو 015)',
+      'attendees.required' => 'عدد الأفراد مطلوب',
+      'attendees.integer' => 'عدد الأفراد يجب أن يكون رقم صحيح',
+      'attendees.min' => 'عدد الأفراد يجب أن يكون على الأقل 1',
+      'start_at_full.after' => 'تاريخ البداية يجب أن يكون بعد الآن',
+      'end_at_full.after' => 'تاريخ النهاية يجب أن يكون بعد بداية الحجز',
+      'recurrence_type.in' => 'نوع التكرار غير صالح',
+      'recurrence_interval.min' => 'المسافة يجب أن تكون على الأقل 1',
+      'recurrence_end_date.after_or_equal' => 'تاريخ انتهاء التكرار يجب أن يكون بعد أو في نفس يوم بداية الحجز',
+    ]);
 
     // تحقق الشيفت
     if (!$openShift && !$isAdmin && !empty($data['deposit']) && $data['deposit'] > 0) {
@@ -926,6 +944,232 @@ class BookingController extends Controller
         ->route('error.create', ['message' => $e->getMessage()]);
     }
   }
+  public function startBookingNow(
+    Request $request,
+    PricingService $pricing,
+    BookingConflictService $conflicts,
+    ShiftService $shiftService
+  ) {
+    $user = \Auth::user();
+    $openShift = Shift::where('user_id', $user->id)->whereNull('end_time')->first();
+    $isAdmin = $user->hasRole('admin');
+
+    $data = $request->validate([
+      'hall_id' => 'required|exists:halls,id',
+      'client_id' => 'nullable|exists:clients,id',
+      'client_name' => 'nullable|string|min:3|max:50|required_without:client_id',
+      'client_phone' => ['nullable', 'regex:/^(010|011|012|015)[0-9]{8}$/', 'required_without:client_id'],
+      'title' => 'nullable|string|max:255',
+      'attendees' => [
+        'required',
+        'integer',
+        'min:1',
+        function ($attr, $val, $fail) use ($request) {
+          $hall = Hall::find($request->hall_id);
+          if ($hall && $val > $hall->max_capacity) {
+            $fail("عدد الأفراد لا يمكن أن يتخطى السعة القصوى للقاعة ({$hall->max_capacity}).");
+          }
+        }
+      ],
+      'duration_minutes' => 'required|integer|min:30',
+      'status' => 'nullable|in:scheduled,due,in_progress,finished,cancelled',
+      'deposit' => 'nullable|numeric|min:0',
+    ], [
+      'client_name.required_without' => 'من فضلك أدخل اسم العميل إذا لم تختَر عميلًا موجودًا',
+      'client_phone.required_without' => 'من فضلك أدخل رقم الهاتف إذا لم تختَر عميلًا موجودًا',
+    ]);
+
+    if (!$openShift && !$isAdmin && !empty($data['deposit']) && $data['deposit'] > 0) {
+      session()->flash('shift_required', true);
+      return redirect()->back()
+        ->with('error', '⚠️ لا يوجد شيفت مفتوح، ابدأ شيفت أولاً.');
+    }
+
+    try {
+      if (empty($data['client_id']) && empty($data['client_name'])) {
+        return back()
+          ->withErrors(['client_id' => 'اختر عميل أو ادخل عميل جديد'])
+          ->withInput();
+      }
+
+      $hall = Hall::findOrFail($data['hall_id']);
+      if (\DB::table('venue_pricing')->exists()) {
+        $base = DB::table('venue_pricing')->value('base_hour_price');
+      } else {
+        return redirect()
+          ->route('error.create', ['message' => "لا يوجد سعر اساسي للساعة حتى الأن"]);
+      }
+
+      $now = Carbon::now();
+      $start = $now->copy();
+      $end = $now->copy()->addMinutes((int) $data['duration_minutes']);
+
+      if ($conflicts->hasInProgressConflict($hall->id)) {
+        return back()->withInput()->with('error', 'لا يمكن بدء الحجز الآن هناك حجز جاري لهذه القاعة.');
+      }
+
+      $estimated = $pricing->setBase($base)->total(
+        $data['attendees'],
+        $hall->min_capacity,
+        $data['duration_minutes']
+      );
+
+      // ===== الحصول على العميل بطريقة آمنة =====
+      // إذا أُعطى client_id نستخدمه مباشرة
+      if (!empty($data['client_id'])) {
+        $clientId = (int) $data['client_id'];
+      } else {
+        // حاول العثور حسب رقم الهاتف (لو موجود)
+        $phone = $data['client_phone'] ?? null;
+        $name = $data['client_name'] ?? null;
+        $clientId = null;
+
+        if ($phone) {
+          // أولًا نبحث إن كان العميل موجودًا بنفس الهاتف
+          $existing = Client::where('phone', $phone)->first();
+          if ($existing) {
+            $clientId = $existing->id;
+            // لو أعطي اسم جديد وعايز تحدث الاسم لو مختلف:
+            if ($name && $existing->name !== $name) {
+              $existing->name = $name;
+              $existing->save();
+            }
+          } else {
+            // لو مش موجود: حاول الإنشاء بطريقة آمنة ــ تعامل مع سباقات الإنشاء
+            try {
+              $new = Client::create([
+                'name' => $name ?? 'عميل',
+                'phone' => $phone,
+              ]);
+              $clientId = $new->id;
+            } catch (\Illuminate\Database\QueryException $qe) {
+              // لو استثناء تكرار مفتاح (race condition) — جلب العميل الموجود الآن
+              // كود الخطأ MySQL for duplicate entry هو 1062؛ لكن نكتفي بالتعامل العام
+              \Log::warning('Client create race condition, fetching existing by phone. Err: ' . $qe->getMessage());
+              $existingAfter = Client::where('phone', $phone)->first();
+              if ($existingAfter) {
+                $clientId = $existingAfter->id;
+                // ممكن نحدّث الاسم لو أُعطي وتم تغيّره
+                if ($name && $existingAfter->name !== $name) {
+                  $existingAfter->name = $name;
+                  $existingAfter->save();
+                }
+              } else {
+                // لم نتمكن من إنشاء العميل أو إيجاده — رمي الاستثناء الأصلي
+                throw $qe;
+              }
+            }
+          }
+        } else {
+          // لا هاتف معطى — نحتاج إنشاء عميل بدون هاتف (إذا السيرفر يسمح)
+          // هنا نفترض أن phone يمكن أن يكون nullable في DB؛ إذا لا، فالتحقق validation يمنع هذا
+          $new = Client::create([
+            'name' => $name ?? 'عميل',
+            'phone' => null,
+          ]);
+          $clientId = $new->id;
+        }
+      }
+
+      // الآن لدينا $clientId
+      if (empty($clientId)) {
+        throw new \Exception('حدث خطأ في الحصول على معرف العميل.');
+      }
+
+  
+      // ✅ 1) تحقق من وجود حجز جاري فعلاً (نمنع)
+      if ($conflicts->hasInProgressConflict($hall->id)) {
+        return back()->withInput()->with('error', '❌ لا يمكن بدء الحجز الآن — هناك حجز جاري في نفس القاعة.');
+      }
+
+      // ⚠️ 2) تحقق من وجود حجز مستقبلي متعارض (نسمح لكن نحذّر)
+      if ($conflicts->hasConflict($hall->id, $start, $end)) {
+        session()->flash('warning', '⚠️ يوجد حجز آخر محدد في نفس الفترة — سيحدث تعارض لاحقًا.');
+      }
+
+      DB::beginTransaction();
+
+      $booking = Booking::create([
+        'hall_id' => $hall->id,
+        'client_id' => $clientId,
+        'title' => $data['title'] ?? ("حجز فوري - " . ($data['client_name'] ?? 'عميل')),
+        'attendees' => $data['attendees'],
+        'start_at' => $start,
+        'real_start_at' => $start,
+        'duration_minutes' => $data['duration_minutes'],
+        'end_at' => $end,
+        'real_end_at' => null,
+        'status' => 'in_progress',
+        'base_hour_price' => $base,
+        'extra_person_hour_price' => $base / 2,
+        'min_capacity_snapshot' => $hall->min_capacity,
+        'estimated_total' => $estimated,
+        'real_total' => null,
+      ]);
+
+      $depositAmount = !empty($data['deposit']) ? (float) $data['deposit'] : 0;
+
+      if ($depositAmount > 0) {
+        $invoice = Invoice::create([
+          'invoice_number' => InvoiceNumber::next(),
+          'client_id' => $booking->client_id,
+          'booking_id' => $booking->id,
+          'type' => 'booking',
+          'total' => $depositAmount,
+          'profit' => $depositAmount,
+          'notes' => 'فاتورة مقدم حجز - بدء فوري'
+        ]);
+
+        InvoiceItem::create([
+          'invoice_id' => $invoice->id,
+          'item_type' => 'deposit',
+          'booking_id' => $booking->id,
+          'name' => 'مقدم حجز: ' . $booking->title,
+          'qty' => 1,
+          'price' => $depositAmount,
+          'cost' => 0,
+          'total' => $depositAmount,
+          'description' => 'مقدم مرتبط بالحجز #' . $booking->id,
+        ]);
+
+        BookingDeposit::create([
+          'booking_id' => $booking->id,
+          'invoice_id' => $invoice->id,
+          'amount' => $depositAmount,
+        ]);
+
+        $shiftService->logAction(
+          'start_booking',
+          $invoice->id,
+          $invoice->total ?? $depositAmount,
+          null,
+          "بدء حجز فوري وربط مقدم"
+        );
+      } else {
+        Invoice::create([
+          'invoice_number' => InvoiceNumber::next(),
+          'client_id' => $booking->client_id,
+          'booking_id' => $booking->id,
+          'type' => 'booking',
+          'total' => 0,
+          'profit' => 0,
+          'notes' => 'فاتورة حجز (بدء فوري)'
+        ]);
+      }
+
+      DB::commit();
+
+      return redirect()
+        ->route('bookings.index-manager')
+        ->with('success', "تم بدء الجلسة الآن (حجز #{$booking->id}) بنجاح.");
+
+    } catch (\Throwable $e) {
+      DB::rollBack();
+      \Log::error('Error starting booking now: ' . $e->getMessage());
+      return redirect()
+        ->route('error.create', ['message' => $e->getMessage()]);
+    }
+  }
 
 
 
@@ -1035,6 +1279,79 @@ class BookingController extends Controller
     $booking->delete();
     return redirect()->route('bookings.index')->with('success', 'تم حذف الحجز');
   }
+  public function cancel(Booking $booking): RedirectResponse
+  {
+    $user = \Auth::user();
+    DB::beginTransaction();
+
+    try {
+      // حدد اسم العميل لو موجود
+      $clientName = $booking->client->name ?? 'العميل';
+
+      // نجمع كل المقدمات المرتبطة بالحجز
+      $depositSum = BookingDeposit::where('booking_id', $booking->id)->sum('amount');
+
+      if ($booking->status === 'due') {
+
+        // لو الحالة due نغيرها مباشرة لـ cancelled
+        $booking->status = 'cancelled';
+        $booking->save();
+
+        DB::commit();
+
+        return back()->with('success', 'تم إلغاء الحجز بنجاح.');
+      }
+
+      if ($booking->status === 'scheduled' && $depositSum > 0) {
+
+        // نجد الشيفت المفتوح للمستخدم الحالي
+        $shift = Shift::where('user_id', $user->id)->whereNull('end_time')->first();
+        if (!$shift) {
+          DB::rollBack();
+          return back()->with('error', 'لا يوجد شيفت مفتوح لتسجيل المصروف.');
+        }
+
+        // نضيف حدث مصروف في shift_actions
+        $shiftAction = new ShiftAction();
+        $shiftAction->shift_id = $shift->id;
+        $shiftAction->action_type = 'expense_note';
+        $shiftAction->invoice_id = null;
+        $shiftAction->expense_draft_id = null;
+        $shiftAction->amount = 0; // لا إيراد
+        $shiftAction->expense_amount = $depositSum; // قيمة المصروف = مجموع المقدمات
+        $shiftAction->notes = "استرجاع المقدم لحجز العميل: {$clientName}";
+        $shiftAction->save();
+
+        // نزود مجموع المصروفات في الشيفت
+        $shift->total_expense = $shift->total_expense + $depositSum;
+        $shift->save();
+
+        // نحذف أو نخصم المقدمات المرتبطة بهذا الحجز
+        // ملاحظة: الـ booking_deposits مرتبطين بـ invoice_id أيضاً — لو عندك معالجة للفواتير
+        // لازم تتعامل معها هنا. هذا الكود سيحذف تسجيلات المقدم فقط.
+        BookingDeposit::where('booking_id', $booking->id)->delete();
+
+        // نغير حالة الحجز
+        $booking->status = 'cancelled';
+        $booking->save();
+
+        DB::commit();
+
+        return back()->with('success', 'تم إلغاء الحجز واسترجاع المقدم وتسجيل المصروف بالشيفت.');
+      }
+
+      // الحالات الأخرى (مثلاً scheduled بدون مقدمات أو حالات أخرى) — فقط نلغي الحجز
+      $booking->status = 'cancelled';
+      $booking->save();
+
+      DB::commit();
+
+      return back()->with('success', 'تم إلغاء الحجز.');
+    } catch (\Throwable $e) {
+      DB::rollBack();
+      return back()->with('error', 'حدث خطأ أثناء محاولة إلغاء الحجز.');
+    }
+  }
   // app/Http/Controllers/BookingController.php
   public function search(Request $request)
   {
@@ -1070,44 +1387,96 @@ class BookingController extends Controller
 
 
   // داخل الكلاس BookingController
-  public function checkout(Request $request, Booking $booking, ShiftService $shiftService)
+    public function checkout(Request $request, Booking $booking, ShiftService $shiftService)
   {
-    // تأكد الحالة الأساسية
     if ($booking->status !== 'in_progress') {
       return back()->with('error', 'لا يمكن إنهاء هذا الحجز لأن حالته ليست "جاري".');
     }
 
-    // تحقق من الشيفت المفتوح (مثلما في store)
     $user = \Auth::user();
     $openShift = Shift::where('user_id', $user->id)->whereNull('end_time')->first();
     $isAdmin = $user->hasRole('admin') ?? false;
+
     if (!$openShift && !$isAdmin) {
       session()->flash('shift_required', true);
       return back()->with('error', '⚠️ لا يوجد شيفت مفتوح، ابدأ شيفت أولاً.');
     }
 
-    // Validate المدخلات من الفورم (hidden inputs)
     $data = $request->validate([
       'hours_total' => ['nullable', 'numeric', 'min:0'],
-      'purchases_total' => ['nullable', 'numeric', 'min:0'],
+      'purchases_json' => ['nullable', 'string'],
       'deposit_paid' => ['nullable', 'numeric', 'min:0'],
       'hourly_rate' => ['nullable', 'numeric', 'min:0'],
       'booking' => ['required', 'integer', 'exists:bookings,id'],
+      'remaining' => ['required', 'numeric'],
     ]);
+
     $hoursTotal = floatval($data['hours_total'] ?? 0);
-    $purchasesTotal = floatval($data['purchases_total'] ?? 0);
+    $purchases = json_decode($data['purchases_json'] ?? '[]', true);
     $depositPaid = floatval($data['deposit_paid'] ?? 0);
     $hourlyRate = floatval($data['hourly_rate'] ?? 0);
+    $remaining = floatval($data['remaining'] ?? 0);
+    // لو القيمة سالبة خليها 0
+    if ($remaining < 0) {
+      $remaining = 0;
+    }
 
     DB::beginTransaction();
     try {
-      // إجمالي الفاتورة (نفترض نضع كل المبالغ هنا)
-      $invoiceTotal = $hoursTotal + $purchasesTotal;
-      $hoursTotalWithDepositPaid = $hoursTotal - $depositPaid;
-      $hoursTotalWithDepositPaidAndpurchasesTotal = $hoursTotalWithDepositPaid + $purchasesTotal;
-      $invoice = Invoice::where('booking_id', $booking->id)->first();
+      $invoice = Invoice::where('booking_id', $booking->id)->firstOrFail();
+      $purchasesTotal = 0;
+      $purchasesCostTotal = 0;
+      
+      // ✅ إنشاء عناصر الفاتورة من المشتريات
+      if (!empty($purchases) && is_array($purchases)) {
 
+        foreach ($purchases as $item) {
+          $productId = $item['id'] ?? null;
+          $qty = $item['qty'] ?? 1;
+          if (!$productId)
+            continue;
 
+          $product = Product::find($productId);
+          if (!$product)
+            continue;
+          if ($qty > $product->quantity) {
+            return redirect()->back()->with(
+              'error',
+              "المنتج {$product->name} متوفر منه فقط {$product->quantity}، والمطلوب {$qty}."
+            );
+          }
+          $price = $product->price;
+          $cost = $product->cost;
+          $total = $price * $qty;
+          $purchasesTotal += $total;
+          $purchasesCostTotal += $cost * $qty; // ← مجموع تكلفة كل المنتجات
+          InvoiceItem::create([
+            'invoice_id' => $invoice->id,
+            'item_type' => 'product',
+            'product_id' => $product->id,
+            'subscription_id' => null,
+            'booking_id' => $booking->id,
+            'session_id' => null,
+            'name' => $product->name,
+            'qty' => $qty,
+            'price' => $price,
+            'cost' => $cost,
+            'total' => $total,
+            'description' => 'منتج مضاف عند إنهاء الحجز',
+          ]);
+
+          // 🧮 خصم الكمية من المخزون
+          $product->decrement('quantity', $qty);
+          if ($product->quantity < 0) {
+            $product->quantity = 0;
+            $product->save();
+          }
+        }
+      }
+
+      $invoiceTotal = $invoice->total += $remaining;
+      $invoiceProfit = $invoiceTotal - $purchasesCostTotal;
+      // ✅ عنصر الفاتورة الخاص بالساعات
       if ($hoursTotal > 0) {
         InvoiceItem::create([
           'invoice_id' => $invoice->id,
@@ -1116,64 +1485,40 @@ class BookingController extends Controller
           'subscription_id' => null,
           'booking_id' => $booking->id,
           'session_id' => null,
-          'name' => 'سعر الساعات للحجز  : ' . $booking->id . 'ناقص المقدم',
+          'name' => 'سعر الساعات للحجز رقم ' . $booking->id . ' (ناقص المقدم)',
           'qty' => 1,
-          'price' => $hoursTotalWithDepositPaid,
+          'price' => $hoursTotal,
           'cost' => 0,
-          'total' => $hoursTotalWithDepositPaid,
+          'total' => $hoursTotal,
           'description' => 'سعر الساعة: ' . number_format($hourlyRate, 2),
         ]);
       }
 
-
-      if ($purchasesTotal > 0) {
-        InvoiceItem::create([
-          'invoice_id' => $invoice->id,
-          'item_type' => 'product',
-          'product_id' => null,
-          'subscription_id' => null,
-          'booking_id' => $booking->id,
-          'session_id' => null,
-          'name' => 'مشتريات - الحجز #' . $booking->id,
-          'qty' => 1,
-          'price' => $purchasesTotal,
-          'cost' => 0,
-          'total' => $purchasesTotal,
-          'description' => 'ملخص المشتريات عند إنهاء الحجز',
-        ]);
-      }
-
-      // حدث الحجز: من in_progress إلى finished ووقت النهاية الفعلي
+      // ✅ تحديث الفاتورة والحجز
       $booking->update([
         'status' => 'finished',
-        'real_end_at' => Carbon::now(),
+        'real_end_at' => now(),
       ]);
 
-      $invoice->update(['total' => $invoiceTotal, 'profit', $invoiceTotal]);
-      if ($invoice && !$isAdmin) {
-        $shiftService->logAction(
-          'end_booking',
-          $invoice->id,
-          $hoursTotalWithDepositPaidAndpurchasesTotal,
-          null,
-          " 'انهاء حجز'.':'. $booking->id"
-        );
-      }
-      if ($invoice && $isAdmin) {
-        $shiftService->logAction(
-          'end_booking',
-          $invoice->id,
-          $hoursTotalWithDepositPaidAndpurchasesTotal,
-          null,
-          " 'انهاء حجز'.':'. $booking->id"
-        );
-      }
+      $invoice->update([
+        'total' => $invoiceTotal,
+        'profit' => $invoiceProfit,
+      ]);
 
+      // ✅ تسجيل الأكشن في الشيفت (لليوزر والأدمن)
+      $shiftService->logAction(
+        'end_booking',
+        $invoice->id,
+        $invoiceTotal,
+        null,
+        "انهاء حجز رقم: " . $booking->id
+      );
 
       DB::commit();
 
       return redirect()->route('bookings.index-manager')
         ->with('success', 'تم إنهاء الحجز وإنشاء الفاتورة بنجاح.');
+
     } catch (Exception $e) {
       DB::rollBack();
       return redirect()->back()->with('error', 'حدث خطأ أثناء إنهاء الحجز: ' . $e->getMessage());
@@ -1229,16 +1574,16 @@ class BookingController extends Controller
   }
 
 
-public function clientBookings(Request $request, $clientId)
-{
+  public function clientBookings(Request $request, $clientId)
+  {
     // جلب العميل صريحاً بالـ id (سيعطي 404 إذا غير موجود)
     $client = Client::findOrFail($clientId);
 
     $perPage = 20;
     $bookingsQuery = Booking::with([
-        'hall',
-        'deposits',
-        'purchases.product'
+      'hall',
+      'deposits',
+      'purchases.product'
     ])->where('client_id', $client->id)
       ->orderBy('start_at', 'desc');
 
@@ -1246,77 +1591,139 @@ public function clientBookings(Request $request, $clientId)
     $bookings = $bookingsQuery->paginate($perPage)->withQueryString();
 
     $statusCounts = Booking::select('status', DB::raw('COUNT(*) as cnt'))
-        ->where('client_id', $client->id)
-        ->groupBy('status')
-        ->pluck('cnt', 'status')
-        ->toArray();
+      ->where('client_id', $client->id)
+      ->groupBy('status')
+      ->pluck('cnt', 'status')
+      ->toArray();
 
-    $statuses = ['scheduled','due','in_progress','finished','cancelled'];
+    $statuses = ['scheduled', 'due', 'in_progress', 'finished', 'cancelled'];
     $countsByStatus = [];
     foreach ($statuses as $s) {
-        $countsByStatus[$s] = isset($statusCounts[$s]) ? (int)$statusCounts[$s] : 0;
+      $countsByStatus[$s] = isset($statusCounts[$s]) ? (int) $statusCounts[$s] : 0;
     }
 
     $depositsTotal = 0;
     if (Schema::hasTable('booking_deposits')) {
-        $depositsTotal = DB::table('booking_deposits')
-            ->join('bookings', 'booking_deposits.booking_id', '=', 'bookings.id')
-            ->where('bookings.client_id', $client->id)
-            ->sum('booking_deposits.amount');
+      $depositsTotal = DB::table('booking_deposits')
+        ->join('bookings', 'booking_deposits.booking_id', '=', 'bookings.id')
+        ->where('bookings.client_id', $client->id)
+        ->sum('booking_deposits.amount');
     }
 
     $receivedTotal = Booking::where('client_id', $client->id)
-        ->whereNotNull('real_total')
-        ->sum('real_total');
+      ->whereNotNull('real_total')
+      ->sum('real_total');
 
     $estimatedTotal = Booking::where('client_id', $client->id)->sum('estimated_total');
 
     $purchasesTotal = 0;
     if (Schema::hasTable('booking_purchases') && Schema::hasTable('products')) {
-        $purchasesTotal = DB::table('booking_purchases')
-            ->join('bookings', 'booking_purchases.booking_id', '=', 'bookings.id')
-            ->join('products', 'booking_purchases.product_id', '=', 'products.id')
-            ->where('bookings.client_id', $client->id)
-            ->select(DB::raw('SUM(products.price * booking_purchases.quantity) as total'))
-            ->value('total') ?? 0;
+      $purchasesTotal = DB::table('booking_purchases')
+        ->join('bookings', 'booking_purchases.booking_id', '=', 'bookings.id')
+        ->join('products', 'booking_purchases.product_id', '=', 'products.id')
+        ->where('bookings.client_id', $client->id)
+        ->select(DB::raw('SUM(products.price * booking_purchases.quantity) as total'))
+        ->value('total') ?? 0;
     }
 
     $bookingIds = $bookingsAll->pluck('id')->toArray();
 
     $depositsPerBooking = [];
     if (Schema::hasTable('booking_deposits') && !empty($bookingIds)) {
-        $rows = DB::table('booking_deposits')
-            ->select('booking_id', DB::raw('SUM(amount) as total'))
-            ->whereIn('booking_id', $bookingIds)
-            ->groupBy('booking_id')
-            ->get();
-        foreach ($rows as $r) $depositsPerBooking[$r->booking_id] = (float)$r->total;
+      $rows = DB::table('booking_deposits')
+        ->select('booking_id', DB::raw('SUM(amount) as total'))
+        ->whereIn('booking_id', $bookingIds)
+        ->groupBy('booking_id')
+        ->get();
+      foreach ($rows as $r)
+        $depositsPerBooking[$r->booking_id] = (float) $r->total;
     }
 
     $purchasesPerBooking = [];
     if (!empty($bookingIds) && Schema::hasTable('booking_purchases') && Schema::hasTable('products')) {
-        $rows = DB::table('booking_purchases')
-            ->select('booking_purchases.booking_id', DB::raw('SUM(products.price * booking_purchases.quantity) as total'))
-            ->join('products', 'booking_purchases.product_id', '=', 'products.id')
-            ->whereIn('booking_purchases.booking_id', $bookingIds)
-            ->groupBy('booking_purchases.booking_id')
-            ->get();
-        foreach ($rows as $r) $purchasesPerBooking[$r->booking_id] = (float)$r->total;
+      $rows = DB::table('booking_purchases')
+        ->select('booking_purchases.booking_id', DB::raw('SUM(products.price * booking_purchases.quantity) as total'))
+        ->join('products', 'booking_purchases.product_id', '=', 'products.id')
+        ->whereIn('booking_purchases.booking_id', $bookingIds)
+        ->groupBy('booking_purchases.booking_id')
+        ->get();
+      foreach ($rows as $r)
+        $purchasesPerBooking[$r->booking_id] = (float) $r->total;
     }
 
     return view('clients.bookings', [
-        'client' => $client,
-        'bookings' => $bookings,
-        'totalBookings' => $bookingsAll->count(),
-        'countsByStatus' => $countsByStatus,
-        'depositsTotal' => (float)$depositsTotal,
-        'receivedTotal' => (float)$receivedTotal,
-        'estimatedTotal' => (float)$estimatedTotal,
-        'purchasesTotal' => (float)$purchasesTotal,
-        'depositsPerBooking' => $depositsPerBooking,
-        'purchasesPerBooking' => $purchasesPerBooking,
+      'client' => $client,
+      'bookings' => $bookings,
+      'totalBookings' => $bookingsAll->count(),
+      'countsByStatus' => $countsByStatus,
+      'depositsTotal' => (float) $depositsTotal,
+      'receivedTotal' => (float) $receivedTotal,
+      'estimatedTotal' => (float) $estimatedTotal,
+      'purchasesTotal' => (float) $purchasesTotal,
+      'depositsPerBooking' => $depositsPerBooking,
+      'purchasesPerBooking' => $purchasesPerBooking,
     ]);
-}
+  }
 
+  public function checkOngoing(Request $request)
+  {
+    $data = $request->validate([
+      'hall_id' => ['required', 'integer', 'exists:halls,id'],
+    ]);
+
+    $hallId = $data['hall_id'];
+
+    try {
+      // 🔥 نجيب أول حجز حالته in_progress فقط
+      $ongoing = Booking::where('hall_id', $hallId)
+        ->where('status', 'in_progress')
+        ->with('client')
+        ->orderBy('start_at', 'asc')
+        ->first();
+
+      if ($ongoing) {
+        $start = optional($ongoing->start_at)->format('Y-m-d H:i');
+        $end = optional($ongoing->end_at)->format('Y-m-d H:i');
+        $clientName = optional($ongoing->client)->name ?? null;
+
+        $msgParts = [];
+        $msgParts[] = "القاعة محجوزة حالياً";
+        if ($start && $end) {
+          $msgParts[] = "من {$start} إلى {$end}";
+        } elseif ($start) {
+          $msgParts[] = "ابتداءً من {$start}";
+        }
+
+        $msgParts[] = " (الحالة: in_progress)";
+
+        if ($clientName) {
+          $msgParts[] = " - العميل: {$clientName}";
+        }
+
+        $message = implode(' ', $msgParts);
+
+        return response()->json([
+          'ongoing' => true,
+          'message' => $message,
+          'booking_id' => $ongoing->id,
+        ], 200);
+      }
+
+      // لا يوجد حجز جاري
+      return response()->json([
+        'ongoing' => false,
+        'message' => 'لا توجد حجوزات جارية للقاعة المحددة.',
+      ], 200);
+
+    } catch (\Exception $e) {
+      \Log::error('checkOngoing error: ' . $e->getMessage(), [
+        'hall_id' => $hallId,
+      ]);
+
+      return response()->json([
+        'error' => 'حدث خطأ أثناء التحقق من الحجوزات.',
+      ], 500);
+    }
+  }
 }
 

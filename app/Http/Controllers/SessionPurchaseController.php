@@ -19,6 +19,27 @@ use Illuminate\Support\Facades\DB;
 class SessionPurchaseController extends Controller
 {
 
+public function updatePurchases(Request $request, $sessionId)
+{
+    $quantities = $request->input('quantities', []);
+    $removed = json_decode($request->input('removed', '[]'), true);
+
+    // 🟩 تحديث الكميات
+    foreach ($quantities as $purchaseId => $qty) {
+        SessionPurchase::where('id', $purchaseId)
+            ->where('sation_id', $sessionId)
+            ->update(['quantity' => $qty]);
+    }
+
+    // 🟥 حذف المنتجات اللي اتشالت
+    if (!empty($removed)) {
+        SessionPurchase::whereIn('id', $removed)
+            ->where('sation_id', $sessionId)
+            ->delete();
+    }
+
+    return response()->json(['status' => 'success']);
+}
   public function create(Request $request, Sation $session)
   {
     if ($session->end_time !== null || $session->status === 'closed') {

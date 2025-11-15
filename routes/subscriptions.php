@@ -1,5 +1,6 @@
 <?php
 use App\Http\Controllers\SubscriptionController;
+use App\Http\Controllers\SubscriptionVisitController;
 
 // الاشتراكات 
 
@@ -31,7 +32,24 @@ Route::middleware('auth')->group(function () {
   // routes/web.php
   Route::post('/subscriptions/{subscription}/renew', [SubscriptionController::class, 'renew'])
     ->name('subscriptions.renew');
+  // sub visites
+  Route::post('/subscription-visits', [SubscriptionVisitController::class, 'store']);
 
+
+
+  Route::get('subscriptions/{subscription}/visits', [SubscriptionVisitController::class, 'showVisits'])
+    ->name('subscriptions.visits.show')
+    ->middleware('auth');
+
+// API لجلب زيارات الاشتراك (AJAX)
+Route::get('subscriptions/{subscription}/visits/list', [SubscriptionVisitController::class, 'visitsList'])
+    ->name('subscriptions.visits.list')
+    ->middleware('auth');
+
+// ختم الخروج للزيارة
+Route::post('subscription-visits/{visit}/checkout', [SubscriptionVisitController::class, 'checkout'])
+    ->name('subscription-visits.checkout')
+    ->middleware('auth');
 });
 
 

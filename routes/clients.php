@@ -11,6 +11,15 @@ Route::middleware('auth')->group(function () {
   Route::get('/clients/{id}/barcode', [ClientController::class, 'createBarcode'])->name('clients.barcode');
 
   Route::get('/search-clients', [ClientController::class, 'search'])->name('clients.search');
+  Route::get('/search-clients-id', [ClientController::class, 'searchId'])->name('clients.search.id');
+    //تعديل العملاء =======================
+
+  // عرض فورم التعديل
+  Route::get('/clients/{client}/edit', [ClientController::class, 'edit'])->name('clients.edit');
+
+  // تحديث بيانات العميل
+  Route::put('/clients/{client}', [ClientController::class, 'update'])->name('clients.update');
+
 
 });
 

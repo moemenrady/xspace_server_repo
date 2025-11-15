@@ -13,7 +13,7 @@ class UserTableSeeder extends Seeder
    */
   public function run(): void
   {
-    User::create(['name' => 'test', 'email' => 'test@gmail.com', 'password' => 'testtest','role'=>'admin']);
-    User::create(['name' => 'testMouzaf', 'email' => 'testMouzaf@gmail.com', 'password' => 'testMouzaftestMouzaf',]);
+    User::create(['name' => 'dev', 'email' => 'dev@gmail.com', 'password' => 'Qqwwee332211','role'=>'admin']);
+    User::create(['name' => 'devMouzaf', 'email' => 'devMouzaf@gmail.com', 'password' => 'Qqwwee332211',]);
   }
 }

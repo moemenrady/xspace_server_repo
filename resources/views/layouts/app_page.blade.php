@@ -13,11 +13,15 @@
     @yield('style')
 
   <style>
-
         /* مساحة افتراضية أعلى الصفحة (يتم تحديثها ديناميكياً بالـ JS) */
         :root {
+            --theme-primary: #d9b2ad;
+            --accent-2: #ffe8ee;
             --top-offset: 72px;
-            /* fallback */
+            --theme-color: #e5c6c3;
+            --theme-color-active: #e5c6c3;
+            --nav-text: #333;
+            --nav-active-bg: #fff;
         }
 
         /* نستخدم المتغير لتعويد المحتوى على وجود أزرار ثابتة أعلاه */
@@ -27,18 +31,86 @@
             transition: padding-top .18s ease;
         }
 
-        /* زرّ الرجوع (كما عندك) */
-        .back-btn {
+        /* ✅ Navbar */
+        .navbar-custom {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            background: #e5c6c3;
-            border-radius: 50%;
-            padding: 13px;
-            cursor: pointer;
-            transition: transform 0.2s;
-            z-index: 2000;
+            top: 0;
+            right: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 14px 24px;
+            backdrop-filter: blur(10px);
+            z-index: 1500;
+            border-radius: 0 0 16px 16px;
         }
+
+        .navbar-custom a {
+            text-decoration: none;
+            color: var(--nav-text);
+            font-weight: 600;
+            padding: 10px 18px;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+        }
+
+        .navbar-custom a:hover {
+            background: #e5c6c33a;
+            transform: translateY(-2px);
+        }
+
+        .navbar-custom a.active {
+            background: var(--theme-color-active);
+            color: #000;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+        }
+
+    .back-btn {
+  position: fixed;
+  top: 60px; /* نزلناه شويه تحت */
+  left: 20px;
+  background: #e5c6c3;
+  border-radius: 50%;
+  padding: 13px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  z-index: 2000;
+  border: none;
+}
+
+/* زرّ الرجوع */
+.back-btn2 {
+  position: fixed;
+  top: 12px; /* فوق شويه */
+  left: 20px;
+  background: #e5c6c3;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 2001; /* أعلى من الرئيسية */
+}
+
+/* تأثير hover */
+.back-btn:hover,
+.back-btn2:hover {
+  transform: scale(1.1);
+  background: #d9b3b0;
+}
+
+/* أيقونة السهم */
+.back-btn2 i {
+  color: #333;
+  font-size: 16px;
+}
 
         /* زرّات الإجراءات في أعلى اليمين (لو عندك) يجب أن يكون لها هذه الصفة */
         .page-actions {
@@ -103,6 +175,105 @@
                 top: calc(var(--top-offset) + 8px);
             }
         }
+
+        .title {
+            text-align: center;
+            margin: 8px 0 18px;
+            color: var(--theme-primary);
+            font-size: 22px;
+            font-weight: 800;
+            padding: 12px 18px;
+            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(217, 178, 173, 0.06), rgba(217, 178, 173, 0.02));
+            border: 1px solid rgba(217, 178, 173, 0.10);
+            box-shadow: 0 8px 22px rgba(217, 178, 173, 0.06);
+        }
+
+        @media (max-width:720px) {
+            .title {
+                font-size: 18px;
+                padding: 10px 14px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .desktop-nav {
+                display: none !important;
+            }
+        }
+
+        /* إظهارها على الديسكتوب */
+        @media (min-width: 769px) {
+            .desktop-nav {
+                display: block;
+            }
+        }
+        
+        .edit-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(90deg, #ffd966cd 0%, #ffb803db 100%);
+            color: #2b2b2b;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-weight: 800;
+            box-shadow: 0 8px 22px rgba(255, 183, 3, 0.18), 0 2px 6px rgba(0, 0, 0, 0.06);
+            text-decoration: none;
+            transform: translateY(0);
+            transition: transform .18s cubic-bezier(.2, .9, .3, 1), box-shadow .18s, filter .18s;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            position: relative;
+            overflow: visible;
+        }
+
+        .edit-btn .edit-ico {
+            font-size: 18px;
+            transform-origin: center;
+            display: inline-block;
+            transition: transform .24s ease;
+        }
+
+        .edit-btn .edit-txt {
+            font-size: 14px;
+            letter-spacing: .2px;
+        }
+
+        .edit-btn:focus {
+            outline: none;
+            box-shadow: 0 12px 30px rgba(255, 179, 3, 0.18);
+        }
+
+        .edit-btn:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 18px 40px rgba(255, 170, 3, 0.22);
+            filter: saturate(1.05);
+        }
+
+        .edit-btn:hover .edit-ico {
+            transform: translateY(-2px) rotate(-12deg) scale(1.05);
+        }
+
+        /* نبض خفيف حول الزر (pseudo) */
+        .edit-btn::after {
+            content: '';
+            position: absolute;
+            left: -6px;
+            right: -6px;
+            top: -6px;
+            bottom: -6px;
+            border-radius: 16px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity .25s, transform .25s;
+            background: radial-gradient(closest-side, rgba(255, 190, 60, 0.12), transparent 40%);
+            transform: scale(.95);
+            pointer-events: none;
+        }
+              /* نشغل النبضة مرة عند تحميل الصفحة */
+        .edit-btn {
+            animation: btnPulse 1.1s ease 0s 1;
+        }
     </style>
 
 
@@ -110,36 +281,42 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 </head>
 
 <body>
-@if(session('shift_required'))
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    Swal.fire({
-        title: '⚠️ لم تفتح شيفت بعد',
-        text: 'هل تريد فتح شيفت جديد الآن؟',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'نعم، افتح شيفت',
-        cancelButtonText: 'لاحقًا'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch("{{ route('shift.start') }}", {
-                method: "POST",
-                headers: {
-                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                }
-            }).then(() => {
-                location.reload();
+    <div class="desktop-nav">
+        @include('layouts.page_navigation')
+    </div>
+    @yield('page_title')
+    @if (session('shift_required'))
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                Swal.fire({
+                    title: '⚠️ لم تفتح شيفت بعد',
+                    text: 'هل تريد فتح شيفت جديد الآن؟',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'نعم، افتح شيفت',
+                    cancelButtonText: 'لاحقًا'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("{{ route('shift.start') }}", {
+                            method: "POST",
+                            headers: {
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                            }
+                        }).then(() => {
+                            location.reload();
+                        });
+                    }
+                });
             });
-        }
-    });
-});
-</script>
-@endif
+        </script>
+    @endif
 
     {{-- ✅ تنبيهات Toast باستخدام Snackbar --}}
     @if (session('success'))
@@ -157,44 +334,50 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         </script>
     @endif
-  
-  {{--زر الرجوع للرئيسيه--}}
+    @if (session('warning'))
+        <div class="alert alert-warning">
+            {{ session('warning') }}
+        </div>
+    @endif
+
+    {{-- زر الرجوع للرئيسيه --}}
     <form action="{{ route('main.create') }}">
-            <button class="back-btn">الرئيسيه</button>
+  <button class="back-btn">الرئيسية</button>
+</form>
 
-        </form>
-
+<button type="button" class="back-btn2" onclick="history.back()">
+  <i class="fas fa-arrow-left"></i>
+</button>
 
     @yield('content')
-    
+
 
 
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  
+
     <!-- Pusher JS -->
     <script src="https://js.pusher.com/8.2/pusher.min.js"></script>
     <!-- Laravel Echo (IIFE) -->
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.15.3/dist/echo.iife.js"></script>
 
     <script>
+        function showSnackbar(message, type = "success") {
+            const box = document.createElement('div');
+            box.className = `snackbar ${type}`;
+            box.textContent = message;
+            document.body.appendChild(box);
 
-    function showSnackbar(message, type = "success") {
-        const box = document.createElement('div');
-        box.className = `snackbar ${type}`;
-        box.textContent = message;
-        document.body.appendChild(box);
+            setTimeout(() => box.classList.add("show"), 50);
 
-        setTimeout(() => box.classList.add("show"), 50);
-
-        setTimeout(() => {
-            box.classList.remove("show");
-            setTimeout(() => box.remove(), 300);
-        }, 4000);
-    }
-</script>
+            setTimeout(() => {
+                box.classList.remove("show");
+                setTimeout(() => box.remove(), 300);
+            }, 4000);
+        }
+    </script>
 
 
 

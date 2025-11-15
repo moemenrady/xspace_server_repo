@@ -21,7 +21,10 @@
     <div class="page-container">
 
         {{-- زر الرجوع / إضافة مشترك --}}
+        @section('page_title')
         <h1 class="title">إدارة الاشتراكات</h1>
+            
+        @endsection
         <div class="page-actions">
             <a href="{{ route('subscriptions.create') }}" class="start-subscription-btn" aria-label="اضافة مشترك">اضافة مشترك</a>
         </div>
@@ -167,22 +170,7 @@ document.addEventListener("DOMContentLoaded", function() {
             justify-content: center;
             align-items: center;
         }
-        .title {
-            display: block;
-            margin: 20px auto;
-            text-align: center;
-            color: var(--theme-primary);
-            animation: slideDown 0.9s ease;
-            font-size: 22px;
-            font-weight: 800;
-            padding: 12px 20px;
-            border-radius: 12px;
-            background: linear-gradient(180deg, rgba(217,178,173,0.08), rgba(217,178,173,0.03));
-            border: 1px solid rgba(217,178,173,0.12);
-            box-shadow: 0 6px 18px rgba(217,178,173,0.08);
-        }
-
-        /* page action button */
+            /* page action button */
         .page-actions {
             position: fixed;
             top: 16px;

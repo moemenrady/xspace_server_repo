@@ -158,7 +158,7 @@
                             <td>{{ $bookingRef ? ('#' . $bookingRef) : '—' }}</td>
                             <td>
                                 @if(isset($id))
-                                    <a class="btn small" href="{{ route('invoices.show', $id) }}">🔍</a>
+                                <a class="btn small" href="{{ route('invoices.client.show', $id) }}">🔍</a>
                                 @endif
                             </td>
                         </tr>

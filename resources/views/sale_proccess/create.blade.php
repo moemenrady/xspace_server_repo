@@ -6,7 +6,7 @@
 
 
     <div class="sale-container">
-        <form action="{{ route('session.store') }}" method="POST">
+        <form action="{{ route('invoices.preview') }}" method="POST">
             @csrf
 
             <div class="mb-3 position-relative">

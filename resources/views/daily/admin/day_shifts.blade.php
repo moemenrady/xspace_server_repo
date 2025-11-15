@@ -5,7 +5,7 @@
 
     <div class="add-expense-wrapper" style="padding-bottom:40px;">
 
-        <h2 class="page-title">📅 شيفتات يوم {{ \Carbon\Carbon::parse($date)->format('Y-m-d') }}</h2>
+        <h2 class="page-title">{{ \Carbon\Carbon::parse($date)->format('Y-m-d') }}</h2>
 
         {{-- Alerts --}}
         @if (session('success'))
@@ -160,55 +160,59 @@
             font-family: "Cairo", sans-serif;
             background: #F2F2F2;
             margin: 0;
-            padding: 40px;
+            padding: 70px;
             color: #333;
+
         }
 
 
-/* نضع ال row بالنسبة النسبية ليعمل badge على الموبايل فوق الكارت */
-@media (max-width:768px) {
-    tbody tr {
-        position: relative;
-    }
+        /* نضع ال row بالنسبة النسبية ليعمل badge على الموبايل فوق الكارت */
+        @media (max-width:768px) {
+            tbody tr {
+                position: relative;
+            }
 
-    /* البادج على الموبايل: فوق يمين الكارت (صفحة RTL) */
-    .shift-badge {
-        position: absolute;
-        top: -10px;
-        right: 12px; /* RTL: نعرضها على اليمين */
-        background: #fff;
-        padding: 6px 8px;
-        border-radius: 12px;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-        font-size: 16px;
-        line-height: 1;
-    }
+            /* البادج على الموبايل: فوق يمين الكارت (صفحة RTL) */
+            .shift-badge {
+                position: absolute;
+                top: -10px;
+                right: 12px;
+                /* RTL: نعرضها على اليمين */
+                background: #fff;
+                padding: 6px 8px;
+                border-radius: 12px;
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+                font-size: 16px;
+                line-height: 1;
+            }
 
-    .shift-user-cell .shift-user-name {
-        display: block;
-        margin-top: 6px; /* لترك مسافة تحت البادج */
-    }
-}
+            .shift-user-cell .shift-user-name {
+                display: block;
+                margin-top: 6px;
+                /* لترك مسافة تحت البادج */
+            }
+        }
 
-/* على الديسكتوب: نجعل البادج inline بجانب الاسم */
-@media (min-width:769px) {
-    .shift-badge {
-        position: static;
-        display: inline-block;
-        margin-left: 8px; /* عند RTL هذا يضعها قبل الاسم بصريًا */
-        margin-right: 0;
-        background: transparent;
-        padding: 0;
-        box-shadow: none;
-        font-size: 18px;
-        vertical-align: middle;
-    }
+        /* على الديسكتوب: نجعل البادج inline بجانب الاسم */
+        @media (min-width:769px) {
+            .shift-badge {
+                position: static;
+                display: inline-block;
+                margin-left: 8px;
+                /* عند RTL هذا يضعها قبل الاسم بصريًا */
+                margin-right: 0;
+                background: transparent;
+                padding: 0;
+                box-shadow: none;
+                font-size: 18px;
+                vertical-align: middle;
+            }
 
-    /* نجعل اسم المستخدم يظهر عادي */
-    .shift-user-cell {
-        white-space: nowrap;
-    }
-}
+            /* نجعل اسم المستخدم يظهر عادي */
+            .shift-user-cell {
+                white-space: nowrap;
+            }
+        }
 
 
         .page-title {

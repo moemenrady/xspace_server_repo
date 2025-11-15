@@ -42,29 +42,140 @@
         <div class="hall-list">
             <h3>📋 قائمة المنتجات المهمة</h3>
             <div class="cards">
-                @forelse($importantProducts as $ip)
+                @foreach ($importantProducts as $ip)
                     <div class="card-content">
                         <div class="content-left">
                             <h4>⭐ {{ $ip->name }}</h4>
                             <p class="meta small">منتج مرتبط: {{ $ip->product->name ?? '—' }}</p>
                         </div>
                         <div class="content-right">
-                            <span class="date small">🕒 {{ $ip->created_at->diffForHumans() }}</span>
+                            <button class="btn btn-sm btn-warning edit-btn" data-id="{{ $ip->id }}"
+                                data-name="{{ $ip->name }}" data-product="{{ $ip->product->name ?? '' }}"
+                                data-product-id="{{ $ip->product_id ?? '' }}">
+                                ✏️ تعديل
+                            </button>
                         </div>
                     </div>
-                @empty
-                    <p class="empty">🚀 لا توجد منتجات مهمة حتى الآن</p>
-                @endforelse
+                @endforeach
+
             </div>
 
             @if (method_exists($importantProducts, 'links'))
                 <div class="mt-3">{{ $importantProducts->links() }}</div>
             @endif
         </div>
+
+    </div>
+    <!-- Modal التعديل -->
+    <div id="editModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 16px;">
+                <div class="modal-header">
+                    <h5 class="modal-title">✏️ تعديل المنتج المهم</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm" method="POST" action="">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="form-group mb-3">
+                            <label>اسم التعريف</label>
+                            <input type="text" name="name" id="editName" class="form-control" required>
+                        </div>
+
+                        <div class="form-group position-relative mb-3">
+                            <label>اختر منتج جديد (اختياري)</label>
+                            <input type="text" id="editProductSearch" placeholder="🔍 اكتب اسم المنتج..."
+                                class="form-control">
+                            <input type="hidden" name="product_id" id="editProductId">
+
+                            <div id="editProductResults" class="list-group position-absolute d-none"></div>
+
+                            <div id="editSelectedProduct" class="selected mt-2" style="display:none;">
+                                محدد الآن: <strong id="editSelectedProductText"></strong>
+                                <button type="button" id="editClearSelected" class="btn-small">إلغاء</button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">💾 حفظ التعديلات</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // سكريبت المودال للتعديل
+        $(document).on('click', '.edit-btn', function() {
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            const productName = $(this).data('product');
+            const productId = $(this).data('product-id');
+
+            // املأ البيانات في المودال
+            $('#editName').val(name);
+            $('#editSelectedProductText').text(productName);
+            $('#editSelectedProduct').show();
+            $('#editProductId').val(productId);
+
+            // حدّث الأكشن بتاع الفورم
+            $('#editForm').attr('action', `/important-products/${id}`);
+
+            // افتح المودال
+            $('#editModal').modal('show');
+        });
+
+        // بحث داخل المودال
+        $('#editProductSearch').on('keyup', function() {
+            let query = $(this).val().trim();
+            if (query.length < 1) {
+                $('#editProductResults').addClass('d-none');
+                return;
+            }
+
+            $.ajax({
+                url: "{{ route('products.search') }}",
+                type: "GET",
+                data: {
+                    q: query
+                },
+                success: function(data) {
+                    let html = '';
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            html += `<a href="#" class="list-group-item list-group-item-action edit-result-item" 
+                    data-id="${item.id}" data-name="${item.name}">
+                    #${item.id} - ${item.name}
+                </a>`;
+                        });
+                    } else {
+                        html = '<div class="list-group-item text-muted">لا توجد نتائج</div>';
+                    }
+                    $('#editProductResults').html(html).removeClass('d-none');
+                }
+            });
+        });
+
+        // اختيار منتج من نتائج البحث داخل المودال
+        $(document).on('click', '.edit-result-item', function(e) {
+            e.preventDefault();
+            const id = $(this).data('id');
+            const name = $(this).data('name');
+            $('#editProductId').val(id);
+            $('#editSelectedProductText').text(name);
+            $('#editSelectedProduct').show();
+            $('#editProductResults').addClass('d-none');
+        });
+
+        $('#editClearSelected').on('click', function() {
+            $('#editProductId').val('');
+            $('#editSelectedProductText').text('');
+            $('#editSelectedProduct').hide();
+            $('#editProductSearch').val('');
+        });
+
         $(document).ready(function() {
             let selectedProduct = null;
 
@@ -96,7 +207,7 @@
                             });
                         } else {
                             html =
-                            '<div class="list-group-item text-muted">لا توجد نتائج</div>';
+                                '<div class="list-group-item text-muted">لا توجد نتائج</div>';
                         }
                         $('#productResults').html(html).removeClass('d-none');
                     }

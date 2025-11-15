@@ -475,6 +475,52 @@
                 max-height: calc(48vh - 56px);
             }
         }
+          .back-btn {
+            position: fixed;
+            top: 60px;
+            /* نزلناه شويه تحت */
+            left: 20px;
+            background: #e5c6c3;
+            border-radius: 50%;
+            padding: 13px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            z-index: 2000;
+            border: none;
+        }
+
+        /* زرّ الرجوع */
+        .back-btn2 {
+            position: fixed;
+            top: 12px;
+            /* فوق شويه */
+            left: 20px;
+            background: #e5c6c3;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 2001;
+            /* أعلى من الرئيسية */
+        }
+
+        /* تأثير hover */
+        .back-btn:hover,
+        .back-btn2:hover {
+            transform: scale(1.1);
+            background: #d9b3b0;
+        }
+
+        /* أيقونة السهم */
+        .back-btn2 i {
+            color: #333;
+            font-size: 16px;
+        }
     </style>
 </head>
 
@@ -482,11 +528,12 @@
     <div class="page">
         <h2 class="page-title">الفاتورة</h2>
 
-        {{-- زر الرجوع للرئيسيه --}}
-        <form action="{{ route('main.create') }}">
-            <button class="back-btn">الرئيسيه</button>
 
-        </form>
+        <button type="button" class="back-btn2" onclick="history.back()">
+            ←
+
+        </button>
+
         <div class="invoice-container" role="region" aria-label="Invoice container">
             <div class="invoice-header">
                 <div class="header-left" style="gap:18px;">

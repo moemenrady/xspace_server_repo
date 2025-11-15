@@ -88,7 +88,7 @@
             font-family: "Cairo", sans-serif;
             background: #F2F2F2;
             margin: 0;
-            padding: 40px;
+            padding: 90px;
             color: #333;
         }
 
