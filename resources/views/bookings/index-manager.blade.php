@@ -111,23 +111,30 @@
                     }
 
                     bookingsArray.forEach(b => {
-                        let actionBtns = "";
-                        if (b.status === "scheduled" || b.status === "due") {
-                            actionBtns =
-                                `<a href="/bookings/${b.id}/edit" class="btn btn-sm btn-outline-primary">✏️ تعديل</a>`;
-                        }
-                        const weekdayNames = ['الحد', 'الاتنين', 'التلات', 'الأربع', 'الخميس',
-                            'الجمعة', 'السبت'
-                        ];
-                        const startDate = new Date(b.start_at);
-                        const weekdayLabel = weekdayNames[startDate.getDay()];
+    let actionBtns = "";
+    if (b.status === "scheduled" || b.status === "due") {
+        actionBtns =
+            `<a href="/bookings/${b.id}/edit" class="btn btn-sm btn-outline-primary">✏️ تعديل</a>`;
+    }
 
-                      bookingsList.innerHTML += `
+    const weekdayNames = ['الحد', 'الاتنين', 'التلات', 'الأربع', 'الخميس', 'الجمعة', 'السبت'];
+    const startDate = new Date(b.start_at);
+    const weekdayLabel = weekdayNames[startDate.getDay()];
+
+    // لو جاري، نستخدم real_start_at بدل start_at
+    let displayTime = b.status === "in_progress" && b.real_start_at 
+        ? formatTime12(b.real_start_at) 
+        : formatTime12(b.start_at);
+
+    // لون كونتينر الوقت
+    let timeContainerColor = b.status === "in_progress" ? "info" : "primary";
+
+    bookingsList.innerHTML += `
 <div class="booking-card" onclick="window.location.href='${showRoute.replace(':id', b.id)}'" style="cursor:pointer; position: relative;">
 
-    <!-- وقت البدء في كونتينر أزرق أعلى الكرت -->
-    <div class="booking-time">
-        ${formatTime12(b.start_at)}
+    <!-- وقت البدء في كونتينر -->
+    <div class="booking-time bg-${timeContainerColor}">
+        ${displayTime}
     </div>
 
     <div class="info">
@@ -142,8 +149,7 @@
         <div class="actions mt-2">${actionBtns}</div>
     </div>
 </div>`;
-
-                    });
+});
                 })
                 .catch(err => {
                     bookingsList.innerHTML = `<p class="no-results">❌ حدث خطأ أثناء جلب البيانات</p>`;

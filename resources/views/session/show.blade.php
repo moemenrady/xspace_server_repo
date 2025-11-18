@@ -32,154 +32,147 @@
             <!-- بيانات العميل -->
             <div class="section">
                 <h3>👤 بيانات العميل</h3>
-                <div class="box">
-
-                    <p><strong> المعرف: </strong>{{ $session->client->id }}</p>
-                    <p><strong>الاسم:</strong> {{ $session->client->name }}</p>
-                    <p><strong>الموبايل:</strong> {{ $session->client->phone }}</p>
+                <div class="client-info">
+                    <span>🆔 {{ $session->client->id }}</span>
+                    <span>👤 {{ $session->client->name }}</span>
+                    <span>📞 {{ $session->client->phone }}</span>
+                    <a href="{{ route('clients.edit', $session->client->id) }}" class="edit-btn" title="تعديل بيانات العميل">✏️
+                        تعديل</a>
                 </div>
-                <a href="{{ route('clients.edit', $session->client->id) }}" class="btn edit-btn" title="تعديل بيانات العميل">
-                    <span class="edit-ico" aria-hidden="true">✏️</span>
-                    <span class="edit-txt">تعديل</span>
-                </a>
+
             </div>
 
             <!-- بيانات الجلسة -->
             <div class="section">
                 <h3>🕒 بيانات الجلسة</h3>
-                <div class="box">
-                    <p>
-                        <strong>موعد البدء:</strong>
-                        <span id="display-start-time">
-                            {{ \Carbon\Carbon::parse($session->start_time)->format('Y-m-d h:i A') }}
+                <div class="booking-time">
+                    <div class="time-item highlight">
+                        <span class="label">موعد البدء🚀 :</span>
+                        <span class="value">
+                            {{ \Carbon\Carbon::parse($session->start_time)->format('h:i A') }}
                         </span>
-                    </p>
-                    <p><strong>عدد الساعات:</strong> {{ $hours }}</p>
+                    </div>
+                    <div class="time-item duration">
+                        <span class="label">عدد الساعات⏱️ :</span>
+                        <span class="value">{{ $hours }}</span>
+                    </div>
                     @if ($isFullDay)
                         <p><strong>🌞 يوم كامل</strong></p>
                     @endif
-                    <p><strong>عدد الأفراد:</strong> {{ $session->persons }}</p>
+                    <div class="time-item">
+                        <span class="label">عدد الأفراد👤👤 :</span>
+                        <span class="value"> {{ $session->persons }}</span>
+                    </div>
+                    
+                <div style="margin-top:12px;">
+                    <button id="enterEdit" class="edit-btn"
+                        style="background:transparent; border:0; cursor:pointer; padding:6px 8px; border-radius:8px;">
+                        <span id="editIcon">📅</span> <span id="editText">عدل الموعد</span>
+                    </button>
                 </div>
 
+                <div class="inline-edit-row" style="margin-top:8px;">
+                    <form id="inlineEditForm"
+                        style="display:none; gap:8px; align-items:center; transition:all .18s ease; margin-top:6px;">
+                        @csrf
+                        @method('PUT')
+                        <input id="start_time_inline" name="start_time" type="datetime-local"
+                            value="{{ \Carbon\Carbon::parse($session->start_time)->format('Y-m-d\TH:i') }}"
+                            style="padding:8px 10px; border-radius:8px; border:1px solid #ddd; min-width:220px;">
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <button type="submit" id="saveInlineEdit" class="btn"
+                                style="background:#28a745; color:#fff; padding:8px 12px; border-radius:8px; border:0;">
+                                ✅ حفظ
+                            </button>
+                            <button type="button" id="cancelInlineEdit" class="btn"
+                                style="background:#f0f0f0; color:#333; padding:8px 12px; border-radius:8px; border:0;">
+                                إلغاء
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        const displayRow = document.getElementById('displayRow');
+                        const enterEdit = document.getElementById('enterEdit');
+                        const inlineForm = document.getElementById('inlineEditForm');
+                        const cancelBtn = document.getElementById('cancelInlineEdit');
+                        const startInput = document.getElementById('start_time_inline');
 
-                @if (Auth::user()->role === 'admin')
-                    <div style="margin-top:12px;">
-                        <button id="enterEdit" class="edit-btn"
-                            style="background:transparent; border:0; cursor:pointer; padding:6px 8px; border-radius:8px;">
-                            <span id="editIcon">📅</span> <span id="editText">عدل الموعد</span>
-                        </button>
-                    </div>
+                        function openInline() {
+                            inlineForm.style.display = 'flex';
+                            displayRow.style.display = 'none';
+                            startInput.focus();
+                        }
 
-                    <div class="inline-edit-row" style="margin-top:8px;">
-                        <form id="inlineEditForm"
-                            style="display:none; gap:8px; align-items:center; transition:all .18s ease; margin-top:6px;">
-                            @csrf
-                            @method('PUT')
-                            <input id="start_time_inline" name="start_time" type="datetime-local"
-                                value="{{ \Carbon\Carbon::parse($session->start_time)->format('Y-m-d\TH:i') }}"
-                                style="padding:8px 10px; border-radius:8px; border:1px solid #ddd; min-width:220px;">
-                            <div style="display:flex; gap:8px; align-items:center;">
-                                <button type="submit" id="saveInlineEdit" class="btn"
-                                    style="background:#28a745; color:#fff; padding:8px 12px; border-radius:8px; border:0;">
-                                    ✅ حفظ
-                                </button>
-                                <button type="button" id="cancelInlineEdit" class="btn"
-                                    style="background:#f0f0f0; color:#333; padding:8px 12px; border-radius:8px; border:0;">
-                                    إلغاء
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                        function closeInline() {
+                            inlineForm.style.display = 'none';
+                            displayRow.style.display = 'flex';
+                        }
 
-                    <script>
-                        document.addEventListener("DOMContentLoaded", function() {
-                            const displayRow = document.getElementById('displayRow');
-                            const enterEdit = document.getElementById('enterEdit');
-                            const inlineForm = document.getElementById('inlineEditForm');
-                            const cancelBtn = document.getElementById('cancelInlineEdit');
-                            const startInput = document.getElementById('start_time_inline');
+                        enterEdit.addEventListener('click', openInline);
+                        cancelBtn.addEventListener('click', e => {
+                            e.preventDefault();
+                            closeInline();
+                        });
 
-                            function openInline() {
-                                inlineForm.style.display = 'flex';
-                                displayRow.style.display = 'none';
-                                startInput.focus();
-                            }
+                        inlineForm.addEventListener('submit', async e => {
+                            e.preventDefault();
 
-                            function closeInline() {
-                                inlineForm.style.display = 'none';
-                                displayRow.style.display = 'flex';
-                            }
+                            const url = "{{ route('sessions.updateStartTime', $session->id) }}";
+                            const fd = new FormData(inlineForm);
+                            fd.append('_method', 'PUT');
 
-                            enterEdit.addEventListener('click', openInline);
-                            cancelBtn.addEventListener('click', e => {
-                                e.preventDefault();
-                                closeInline();
-                            });
+                            try {
+                                const resp = await fetch(url, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('input[name="_token"]')
+                                            ?.value || '',
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: fd
+                                });
 
-                            inlineForm.addEventListener('submit', async e => {
-                                e.preventDefault();
+                                const data = await resp.json();
 
-                                const url = "{{ route('sessions.updateStartTime', $session->id) }}";
-                                const fd = new FormData(inlineForm);
-                                fd.append('_method', 'PUT');
+                                showSnackbar(data.message || 'تم', data.status === 'success' ? 'success' : 'error');
 
-                                try {
-                                    const resp = await fetch(url, {
-                                        method: 'POST',
-                                        headers: {
-                                            'X-CSRF-TOKEN': document.querySelector('input[name="_token"]')
-                                                ?.value || '',
-                                            'X-Requested-With': 'XMLHttpRequest',
-                                            'Accept': 'application/json'
-                                        },
-                                        body: fd
-                                    });
-
-                                    const data = await resp.json();
-
-                                    showSnackbar(data.message || 'تم', data.status === 'success' ? 'success' : 'error');
-
-                                    if (data.status === 'success') {
-                                        // ندي مهلة بسيطة عشان المستخدم يشوف الرسالة ثم نعمل ريفريش
-                                        setTimeout(() => window.location.reload(), 1000);
-                                    }
-                                } catch (err) {
-                                    showSnackbar('حدث خطأ أثناء الاتصال بالسيرفر.', 'error');
+                                if (data.status === 'success') {
+                                    // ندي مهلة بسيطة عشان المستخدم يشوف الرسالة ثم نعمل ريفريش
+                                    setTimeout(() => window.location.reload(), 1000);
                                 }
-                            });
-
-                            function showSnackbar(message, type = 'success') {
-                                const existing = document.querySelector('.snackbar.temp-js');
-                                if (existing) existing.remove();
-
-                                let el = document.createElement('div');
-                                el.className = 'snackbar temp-js ' + (type === 'error' ? 'error' : 'success');
-                                el.style.cssText =
-                                    "position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:8px;color:#fff;font-weight:600;z-index:99999;transition:all .3s ease;";
-                                el.style.background = type === 'error' ? '#e74c3c' : '#28a745';
-                                el.innerText = message;
-                                document.body.appendChild(el);
-
-                                setTimeout(() => el.style.opacity = 1, 100);
-                                setTimeout(() => el.remove(), 3000);
+                            } catch (err) {
+                                showSnackbar('حدث خطأ أثناء الاتصال بالسيرفر.', 'error');
                             }
                         });
-                    </script>
-                @endif
 
-            </div>
+                        function showSnackbar(message, type = 'success') {
+                            const existing = document.querySelector('.snackbar.temp-js');
+                            if (existing) existing.remove();
 
-            <!-- الأسعار -->
-            <div class="section">
-                <h3>💰 الأسعار</h3>
-                <div class="box">
-                    <p><strong>سعر الساعات:</strong> {{ $hours_price }} جنيه</p>
-                    <p><strong>سعر المشتريات:</strong> {{ $products_price }} جنيه</p>
+                            let el = document.createElement('div');
+                            el.className = 'snackbar temp-js ' + (type === 'error' ? 'error' : 'success');
+                            el.style.cssText =
+                                "position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:8px;color:#fff;font-weight:600;z-index:99999;transition:all .3s ease;";
+                            el.style.background = type === 'error' ? '#e74c3c' : '#28a745';
+                            el.innerText = message;
+                            document.body.appendChild(el);
+
+                            setTimeout(() => el.style.opacity = 1, 100);
+                            setTimeout(() => el.remove(), 3000);
+                        }
+                    });
+                </script>
                 </div>
+
+
+
+
             </div>
 
-           
             <!-- المشتريات -->
             <div class="section">
                 <h3>🛒 المشتريات</h3>
@@ -208,25 +201,27 @@
                     @endforeach
                 </div>
             </div>
-             <!-- الإجمالي -->
+            <!-- الإجمالي -->
             <div class="section">
-                <h2>📊 الحساب</h2>
+                <h2>💰 الحساب</h2>
                 <div class="box">
                     {{-- <p><strong>إجمالي قبل الخصم:</strong> <span class="price">{{ $total }}</span> جنيه</p> --}}
 
-                        <div class="discount-box">
-                            {{-- <label><input type="radio" name="discount_type" value="amount" form="checkoutForm" checked>
+                    <div class="discount-box">
+                        {{-- <label><input type="radio" name="discount_type" value="amount" form="checkoutForm" checked>
                                 مبلغ</label> --}}
-                            {{-- <label><input type="radio" name="discount_type" value="percent" form="checkoutForm"> نسبة
+                        {{-- <label><input type="radio" name="discount_type" value="percent" form="checkoutForm"> نسبة
                                 %</label>
                             <input type="number" step="0.01" name="discount_value" form="checkoutForm"
                                 placeholder="قيمة الخصم">
                             <input type="text" name="discount_reason" form="checkoutForm"
                                 placeholder="سبب الخصم (اختياري)"> --}}
-                            <p style="font-size: 1.5rem; color: green; font-weight: bold;">
-                                <strong id="final_total_preview">{{ $total }}</strong> جنيه
-                            </p>
-                        </div>
+                                          <p><strong>سعر الساعات:</strong> {{ $hours_price }} جنيه</p>
+                    <p><strong>سعر المشتريات:</strong> {{ $products_price }} جنيه</p>
+                        <p style="font-size: 1.5rem; color: green; font-weight: bold;">
+                            <strong id="final_total_preview">{{ $total }}</strong> جنيه
+                        </p>
+                    </div>
 
                 </div>
             </div>
@@ -676,129 +671,131 @@
 
         });
     </script>
-  <script>
-document.addEventListener("DOMContentLoaded", function() {
-    let selectedProducts = []; // المنتجات المختارة مؤقتاً
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let selectedProducts = []; // المنتجات المختارة مؤقتاً
 
-    // إنشاء الـ Snackbar container
-    let snackbar = document.createElement("div");
-    snackbar.id = "selectedProductsSnackbar";
-    snackbar.style.position = "fixed";
-    snackbar.style.bottom = "20px";
-    snackbar.style.right = "20px";
-    snackbar.style.background = "#333";
-    snackbar.style.color = "#fff";
-    snackbar.style.padding = "15px";
-    snackbar.style.borderRadius = "12px";
-    snackbar.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
-    snackbar.style.zIndex = "99999";
-    snackbar.style.display = "none";
-    snackbar.style.minWidth = "250px";
-    document.body.appendChild(snackbar);
-
-    // زر مسح الكل
-    let clearBtn = document.createElement("span");
-    clearBtn.textContent = "❌";
-    clearBtn.style.cursor = "pointer";
-    clearBtn.style.float = "right";
-    clearBtn.style.marginBottom = "10px";
-    snackbar.appendChild(clearBtn);
-
-    clearBtn.addEventListener("click", () => {
-        selectedProducts = [];
-        updateSnackbarUI();
-    });
-
-    let list = document.createElement("div");
-    list.id = "selectedProductsList";
-    snackbar.appendChild(list);
-
-    let confirmBtn = document.createElement("button");
-    confirmBtn.textContent = "✅ تأكيد المشتريات";
-    confirmBtn.style.marginTop = "10px";
-    confirmBtn.className = "btn btn-success btn-sm";
-    snackbar.appendChild(confirmBtn);
-
-    function updateSnackbarUI() {
-        list.innerHTML = "";
-        if (selectedProducts.length === 0) {
+            // إنشاء الـ Snackbar container
+            let snackbar = document.createElement("div");
+            snackbar.id = "selectedProductsSnackbar";
+            snackbar.style.position = "fixed";
+            snackbar.style.bottom = "20px";
+            snackbar.style.right = "20px";
+            snackbar.style.background = "#333";
+            snackbar.style.color = "#fff";
+            snackbar.style.padding = "15px";
+            snackbar.style.borderRadius = "12px";
+            snackbar.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+            snackbar.style.zIndex = "99999";
             snackbar.style.display = "none";
-            return;
-        }
+            snackbar.style.minWidth = "250px";
+            document.body.appendChild(snackbar);
 
-        selectedProducts.forEach(p => {
-            const prodName = document.querySelector(`.product-item[data-id="${p.product_id}"]`).textContent;
-            const div = document.createElement("div");
-            div.style.display = "flex";
-            div.style.justifyContent = "space-between";
-            div.style.alignItems = "center";
-            div.style.marginBottom = "5px";
+            // زر مسح الكل
+            let clearBtn = document.createElement("span");
+            clearBtn.textContent = "❌";
+            clearBtn.style.cursor = "pointer";
+            clearBtn.style.float = "right";
+            clearBtn.style.marginBottom = "10px";
+            snackbar.appendChild(clearBtn);
 
-            let nameSpan = document.createElement("span");
-            nameSpan.textContent = `${prodName} × ${p.qty}`;
-
-            let minusBtn = document.createElement("button");
-            minusBtn.textContent = "➖";
-            minusBtn.className = "btn btn-sm btn-warning";
-            minusBtn.style.marginLeft = "10px";
-
-            minusBtn.addEventListener("click", () => {
-                if (p.qty > 1) {
-                    p.qty -= 1;
-                } else {
-                    selectedProducts = selectedProducts.filter(item => item.product_id !== p.product_id);
-                }
+            clearBtn.addEventListener("click", () => {
+                selectedProducts = [];
                 updateSnackbarUI();
             });
 
-            div.appendChild(nameSpan);
-            div.appendChild(minusBtn);
-            list.appendChild(div);
-        });
+            let list = document.createElement("div");
+            list.id = "selectedProductsList";
+            snackbar.appendChild(list);
 
-        snackbar.style.display = "block";
-    }
+            let confirmBtn = document.createElement("button");
+            confirmBtn.textContent = "✅ تأكيد المشتريات";
+            confirmBtn.style.marginTop = "10px";
+            confirmBtn.className = "btn btn-success btn-sm";
+            snackbar.appendChild(confirmBtn);
 
-    // التعامل مع أزرار المنتجات
-    document.querySelectorAll(".product-item").forEach(btn => {
-        btn.addEventListener("click", function(e) {
-            e.preventDefault();
-            const id = parseInt(this.dataset.id);
-            const existing = selectedProducts.find(p => p.product_id === id);
-            if (existing) {
-                existing.qty += 1;
-            } else {
-                selectedProducts.push({
-                    product_id: id,
-                    qty: 1
+            function updateSnackbarUI() {
+                list.innerHTML = "";
+                if (selectedProducts.length === 0) {
+                    snackbar.style.display = "none";
+                    return;
+                }
+
+                selectedProducts.forEach(p => {
+                    const prodName = document.querySelector(`.product-item[data-id="${p.product_id}"]`)
+                        .textContent;
+                    const div = document.createElement("div");
+                    div.style.display = "flex";
+                    div.style.justifyContent = "space-between";
+                    div.style.alignItems = "center";
+                    div.style.marginBottom = "5px";
+
+                    let nameSpan = document.createElement("span");
+                    nameSpan.textContent = `${prodName} × ${p.qty}`;
+
+                    let minusBtn = document.createElement("button");
+                    minusBtn.textContent = "➖";
+                    minusBtn.className = "btn btn-sm btn-warning";
+                    minusBtn.style.marginLeft = "10px";
+
+                    minusBtn.addEventListener("click", () => {
+                        if (p.qty > 1) {
+                            p.qty -= 1;
+                        } else {
+                            selectedProducts = selectedProducts.filter(item => item.product_id !== p
+                                .product_id);
+                        }
+                        updateSnackbarUI();
+                    });
+
+                    div.appendChild(nameSpan);
+                    div.appendChild(minusBtn);
+                    list.appendChild(div);
                 });
+
+                snackbar.style.display = "block";
             }
-            updateSnackbarUI();
+
+            // التعامل مع أزرار المنتجات
+            document.querySelectorAll(".product-item").forEach(btn => {
+                btn.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const id = parseInt(this.dataset.id);
+                    const existing = selectedProducts.find(p => p.product_id === id);
+                    if (existing) {
+                        existing.qty += 1;
+                    } else {
+                        selectedProducts.push({
+                            product_id: id,
+                            qty: 1
+                        });
+                    }
+                    updateSnackbarUI();
+                });
+            });
+
+            confirmBtn.addEventListener("click", function() {
+                if (selectedProducts.length === 0) return;
+
+                // نستخدم أول فورم كـ مرجع (كلها نفس الأكشن)
+                const firstForm = document.querySelector(".invoiceForm");
+                if (!firstForm) return;
+
+                const allItems = selectedProducts.map(p => ({
+                    id: p.product_id,
+                    qty: p.qty
+                }));
+
+                firstForm.querySelector(".itemsInput").value = JSON.stringify(allItems);
+                firstForm.submit();
+
+                // فضي المصفوفة
+                selectedProducts = [];
+                updateSnackbarUI();
+            });
+
         });
-    });
-
-    confirmBtn.addEventListener("click", function() {
-    if (selectedProducts.length === 0) return;
-
-    // نستخدم أول فورم كـ مرجع (كلها نفس الأكشن)
-    const firstForm = document.querySelector(".invoiceForm");
-    if (!firstForm) return;
-
-    const allItems = selectedProducts.map(p => ({
-        id: p.product_id,
-        qty: p.qty
-    }));
-
-    firstForm.querySelector(".itemsInput").value = JSON.stringify(allItems);
-    firstForm.submit();
-
-    // فضي المصفوفة
-    selectedProducts = [];
-    updateSnackbarUI();
-});
-
-});
-</script>
+    </script>
 
 
     <script>
@@ -926,9 +923,9 @@ document.addEventListener("DOMContentLoaded", function() {
 @section('style')
     <style>
         /* ==========================
-                                           Unified responsive stylesheet
-                                           Desktop & Mobile (merged)
-                                           ========================== */
+                                                               Unified responsive stylesheet
+                                                               Desktop & Mobile (merged)
+                                                               ========================== */
 
         /* ===== Variables & reset ===== */
         :root {
@@ -1060,6 +1057,56 @@ document.addEventListener("DOMContentLoaded", function() {
             font-size: 15px;
             color: #333;
             box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .booking-time {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            font-family: "Cairo", sans-serif;
+        }
+
+        .time-item {
+            background: #d3dce6;
+            border-radius: 10px;
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1 1 120px;
+            min-width: 110px;
+            text-align: center;
+            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .time-item .label {
+            font-weight: 600;
+            color: #047857;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .time-item .value {
+            font-size: 14px;
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .time-item.highlight {
+            background: #ecfdf5;
+            border: 1px solid #6ee7b7;
+        }
+
+        .time-item.duration {
+            background: #eff6ff;
+            border: 1px solid #93c5fd;
         }
 
         .final-price {
@@ -1497,9 +1544,9 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         /* ======================
-                                           Responsive overrides
-                                           Mobile-first approach
-                                           ====================== */
+                                                               Responsive overrides
+                                                               Mobile-first approach
+                                                               ====================== */
 
         /* Small screens (phones) */
         @media (max-width: 420px) {

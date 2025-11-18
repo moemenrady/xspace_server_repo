@@ -70,7 +70,7 @@
                             <div class="time-item highlight">
                                 <span class="label">🚀 بداية فعلية:</span>
                               <span class="value">
-    {{ \Carbon\Carbon::parse($booking->real_start_at)->format('h:i A') }}
+    {{ \Carbon\Carbon::parse($booking->real_start_at)->format('Y-m-d h:i A') }}
 </span>
   </div>
                         @endif
