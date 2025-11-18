@@ -12,4 +12,9 @@ class ExpenseType extends Model
     {
         return $this->hasMany(ExpenseDraft::class, 'expense_type_id');
     }
+    public function expenses()
+{
+    return $this->hasMany(Expense::class, 'expense_type_id');
+}
+
 }

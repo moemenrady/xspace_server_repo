@@ -213,10 +213,7 @@
                                 @enderror
                             </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">ملاحظات</label>
-                                <textarea name="notes" class="form-control" rows="3">{{ old('notes') }}</textarea>
-                            </div>
+                          
                             <input type="hidden" name="start_at_full" id="start_at_full">
                             <input type="hidden" name="end_at_full" id="end_at_full">
 

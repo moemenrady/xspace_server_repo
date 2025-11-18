@@ -1,33 +1,24 @@
 <?php
 
-use App\Http\Controllers\Admin\Analytics\AnalyticsController;
-use App\Http\Controllers\Admin\Analytics\BookingsAnalyticsController;
-use App\Http\Controllers\Admin\Analytics\CustomersAnalyticsController;
-use App\Http\Controllers\Admin\Analytics\FinancialAnalyticsController;
-use App\Http\Controllers\Admin\Analytics\HallsAnalyticsController;
-use App\Http\Controllers\Admin\Analytics\InventoryAnalyticsController;
-use App\Http\Controllers\Admin\Analytics\SessionsAnalyticsController;
-use App\Http\Controllers\Admin\Analytics\SubscriptionsAnalyticsController;
-use App\Http\Controllers\Api\SystemActionController;
-use App\Http\Controllers\HallController;
 
-Route::prefix('admin')->name('admin.')->middleware(['auth','admin'])->group(function(){
+Route::middleware(['auth','admin'])->group(function(){
   
-  Route::prefix('analytics')->name('analytics.')->group(function(){
-        Route::get('/', [AnalyticsController::class, 'index'])->name('index'); // صفحة عامة
-        Route::get('financial', [FinancialAnalyticsController::class, 'index'])->name('financial');
-        Route::get('halls', [HallsAnalyticsController::class, 'index'])->name('halls');
-        Route::get('bookings', [BookingsAnalyticsController::class, 'index'])->name('bookings');
-        Route::get('subscriptions', [SubscriptionsAnalyticsController::class, 'index'])->name('subscriptions');
-        Route::get('sessions', [SessionsAnalyticsController::class, 'index'])->name('sessions');
-        Route::get('inventory', [InventoryAnalyticsController::class, 'index'])->name('inventory');
-        Route::get('customers', [CustomersAnalyticsController::class, 'index'])->name('customers');
-        // API endpoints for charts / filters (used by JS)
-        Route::get('api/summary', [AnalyticsController::class, 'summaryApi'])->name('api.summary');
-        Route::get('api/halls/top', [HallsAnalyticsController::class, 'topApi'])->name('api.halls.top');
-        // ... more API routes as needed
-        
-    });
+Route::prefix('analytics')->name('analytics.')->middleware('auth')->group(function(){
+    Route::get('all', [\App\Http\Controllers\AnalyticsController::class,'all'])->name('all');
+    Route::get('bookings', [\App\Http\Controllers\AnalyticsController::class,'bookings'])->name('bookings');
+    Route::get('clients', [\App\Http\Controllers\AnalyticsController::class,'clients'])->name('clients');
+    Route::get('halls', [\App\Http\Controllers\AnalyticsController::class,'halls'])->name('halls');
+    Route::get('money', [\App\Http\Controllers\AnalyticsController::class,'money'])->name('money');
+    Route::get('plans', [\App\Http\Controllers\AnalyticsController::class,'plans'])->name('plans');
+    Route::get('products', [\App\Http\Controllers\AnalyticsController::class,'products'])->name('products');
+    Route::get('sessions', [\App\Http\Controllers\AnalyticsController::class,'sessions'])->name('sessions');
+    Route::get('subscriptions', [\App\Http\Controllers\AnalyticsController::class,'subscriptions'])->name('subscriptions');
+    Route::get('users', [\App\Http\Controllers\AnalyticsController::class,'users'])->name('users');
+    Route::get('visits', [\App\Http\Controllers\AnalyticsController::class,'visits'])->name('visits');
+  Route::get('total-income', [\App\Http\Controllers\AnalyticsController::class, 'totalIncomeAndProfit'])
+    ->name('totalIncomeAndProfit');
+  });
+
 });
 
 

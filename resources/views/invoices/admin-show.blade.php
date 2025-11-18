@@ -1,5 +1,5 @@
-@extends('layouts.app_page')
-
+{{--
+ @extends('layouts.app_page')
 @section('content')
     <div class="invoice-page" style="padding:28px 18px;">
 
@@ -20,11 +20,10 @@
                     <button id="exportCsv" class="btn">تصدير CSV</button>
                     <a href="{{ route('invoices.duplicate', $invoice->id) ?? '#' }}" class="btn btn-outline">نسخ
                         الفاتورة</a>
-                </div> --}}
+                </div> 
             </div>
         </div>
 
-        {{-- header info and addresses --}}
         <div class="form-container animate__animated animate__fadeInUp" style="max-width:1100px; margin:0 auto 18px;">
             <div style="display:flex; gap:18px; flex-wrap:wrap;">
                 <div style="flex:1; min-width:240px;">
@@ -61,7 +60,6 @@
             </div>
         </div>
 
-        {{-- controls: search/filter --}}
         <div class="form-container animate__animated animate__fadeInUp" style="max-width:1100px; margin:0 auto 16px;">
             <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
                 <input id="searchInput" placeholder="ابحث عن اسم البند، النوع، أو الوصف..."
@@ -81,7 +79,6 @@
             </div>
         </div>
 
-        {{-- Items table --}}
         <div class="form-container animate__animated animate__fadeInUp" style="max-width:1100px; margin:0 auto 40px;">
             @if ($invoice->items->isEmpty())
                 <div class="alert alert-warning">لا توجد بنود لهذه الفاتورة</div>
@@ -150,7 +147,6 @@
 
     </div>
 
-    {{-- Styles --}}
     <style>
         body {
             font-family: "Cairo", sans-serif;
@@ -284,7 +280,6 @@
         }
     </style>
 
-    {{-- helper functions --}}
     @php
         function humanizeItem($type)
         {
@@ -299,7 +294,6 @@
         }
     @endphp
 
-    {{-- JS: search/filter, export CSV, print, toggle description --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const searchInput = document.getElementById('searchInput');
@@ -375,4 +369,4 @@
             });
         });
     </script>
-@endsection
+@endsection --}}

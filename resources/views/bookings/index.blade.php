@@ -1,4 +1,4 @@
-@extends('layouts.app')
+{{-- @extends('layouts.app')
 
 @section('page_title', 'قائمة الحجوزات')
 
@@ -295,4 +295,4 @@ tbody tr:hover { transform: translateY(-3px); background: rgba(255,247,240,0.6);
             fetchBookings();
         });
 </script>
-@endsection
+@endsection --}}

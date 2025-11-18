@@ -788,12 +788,9 @@ $client = Client::create([
         'total' => 0,
       ]);
 
-      $total = 0;
 
       // 2. إضافة ساعات الجلسة
       $sessionItemTotal = $hours * $hourlyRate;
-      $total += $sessionItemTotal;
-
       if ($hours > 0) {
         InvoiceItem::create([
           'invoice_id' => $invoice->id,
@@ -808,40 +805,70 @@ $client = Client::create([
         ]);
       }
 
-      // 3. إضافة المشتريات
-      foreach ($purchases as $item) {
-        $itemTotal = $item['price'] * $item['qty'];
-        $total += $itemTotal;
+    // 3. إضافة المشتريات
+$purchasesTotal = 0;        // إجمالي سعر البيع
+$purchasesCostTotal = 0;    // إجمالي التكلفة
 
-        // إضافة عنصر الفاتورة
+if (!empty($purchases) && is_array($purchases)) {
+
+    foreach ($purchases as $item) {
+
+        $productId = $item['product_id'] ?? $item['id'] ?? null;
+        $qty = $item['qty'] ?? 1;
+
+        if (!$productId) continue;
+
+        // جلب المنتج
+        $product = Product::find($productId);
+        if (!$product) continue;
+
+        // ❌ تأكد الكمية المطلوبة أقل من المتاحة
+        if ($qty > $product->quantity) {
+            return redirect()->back()->with(
+                'error',
+                "المنتج {$product->name} متوفر منه فقط {$product->quantity}، والمطلوب {$qty}."
+            );
+        }
+
+        // بيانات الحساب
+        $price = $product->price;
+        $cost = $product->cost;
+        $itemTotal = $price * $qty;      // ← إجمالي سعر البيع للصنف
+        $itemCostTotal = $cost * $qty;   // ← إجمالي التكلفة للصنف
+
+        // إجماليات كل المشتريات
+        $purchasesTotal += $itemTotal;
+        $purchasesCostTotal += $itemCostTotal;
+
+        // 🧾 إضافة عنصر الفاتورة
         InvoiceItem::create([
-          'invoice_id' => $invoice->id,
-          'item_type' => 'product',
-          'product_id' => $item['product_id'],
-          'name' => $item['name'],
-          'qty' => $item['qty'],
-          'price' => $item['price'],
-          'cost' => $item['cost'],
-          'total' => $itemTotal,
-          'description' => null,
+            'invoice_id'      => $invoice->id,
+            'item_type'       => 'product',
+            'product_id'      => $product->id,
+            'subscription_id' => null,
+            'booking_id'      => $booking->id ?? null,
+            'session_id'      => null,
+            'name'            => $product->name,
+            'qty'             => $qty,
+            'price'           => $price,
+            'cost'            => $cost,            // ← تكلفة الوحدة
+            'total'           => $itemTotal,       // ← إجمالي السعر (بيع)
+            'description'     => 'منتج مضاف عند إنهاء الحجز',
         ]);
 
-        // ↓↓ تقليل الكمية من جدول المنتجات ↓↓
-        $product = Product::find($item['product_id']);
-        if ($product) {
-          $product->quantity -= $item['qty'];
+        // 🧮 خصم الكمية من المخزون
+        $product->decrement('quantity', $qty);
 
-          // تأكد ماينزلش تحت الصفر
-          if ($product->quantity < 0) {
+        if ($product->quantity < 0) {
             $product->quantity = 0;
-          }
-
-          $product->save();
+            $product->save();
         }
-      }
+    }
 
+      }
+$total=$sessionItemTotal+=$purchasesTotal;
       // 4. تحديث الفاتورة بالمجموع النهائي
-      $invoice->update(['total' => $total]);
+      $invoice->update(['total' => $total,'profit'=>$total-$purchasesCostTotal]);
 
       // 5. تحديث حالة الجلسة إذا كانت هناك ساعات أو مشتريات
 

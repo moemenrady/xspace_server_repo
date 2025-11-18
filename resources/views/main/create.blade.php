@@ -14,7 +14,22 @@
                     </button>
                 </form>
             </div>
-
+    <div class="col-12 col-sm-6 col-lg-4">
+                <form action="{{ route('bookings.index-manager') }}" method="GET">
+                    <button type="submit" class="custom-card w-100">
+                        <img src="https://img.icons8.com/ios/50/calendar.png" alt="icon">
+                        <span>إدارة الحجوزات</span>
+                    </button>
+                </form>
+            </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
+                <form action="{{ route('subscriptions.index-manager') }}" method="GET">
+                    <button type="submit" class="custom-card w-100">
+                        <img src="https://img.icons8.com/ios/50/conference.png" alt="icon">
+                        <span>المشتركين</span>
+                    </button>
+                </form>
+            </div>
             <div class="col-12 col-sm-6 col-lg-4">
                 <form action="{{ route('sale_proccess.create') }}" method="GET">
                     <button type="submit" class="custom-card w-100">
@@ -24,25 +39,7 @@
                 </form>
             </div>
 
-            @if (Auth::user()->role === 'admin')
-                <div class="col-12 col-sm-6 col-lg-4">
-                    <form action="{{ route('expenses.create') }}" method="GET">
-                        <button type="submit" class="custom-card w-100">
-                            <img src="https://img.icons8.com/ios/50/money-transfer.png" alt="icon">
-                            <span>إضافة مصروفات</span>
-                        </button>
-                    </form>
-                </div>
-            @else
-                <div class="col-12 col-sm-6 col-lg-4">
-                    <form action="{{ route('expense-drafts.index') }}" method="GET">
-                        <button type="submit" class="custom-card w-100">
-                            <img src="https://img.icons8.com/ios/50/money-transfer.png" alt="icon">
-                            <span>مصروفات</span>
-                        </button>
-                    </form>
-                </div>
-            @endif
+        
 
             <div class="col-12 col-sm-6 col-lg-4">
                 <form action="{{ route('bookings.create') }}" method="GET">
@@ -60,23 +57,9 @@
                     </button>
                 </form>
             </div>
-            <div class="col-12 col-sm-6 col-lg-4">
-                <form action="{{ route('bookings.index-manager') }}" method="GET">
-                    <button type="submit" class="custom-card w-100">
-                        <img src="https://img.icons8.com/ios/50/calendar.png" alt="icon">
-                        <span>إدارة الحجوزات</span>
-                    </button>
-                </form>
-            </div>
+        
 
-            <div class="col-12 col-sm-6 col-lg-4">
-                <form action="{{ route('subscriptions.index-manager') }}" method="GET">
-                    <button type="submit" class="custom-card w-100">
-                        <img src="https://img.icons8.com/ios/50/conference.png" alt="icon">
-                        <span>المشتركين</span>
-                    </button>
-                </form>
-            </div>
+    
 
             @if (Auth::user()->role === 'admin')
                 <div class="col-12 col-sm-6 col-lg-4">
@@ -105,7 +88,27 @@
                     </form>
                 </div>
             @endif
+                @if (Auth::user()->role === 'admin')
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <form action="{{ route('expenses.create') }}" method="GET">
+                        <button type="submit" class="custom-card w-100">
+                            <img src="https://img.icons8.com/ios/50/money-transfer.png" alt="icon">
+                            <span>إضافة مصروفات</span>
+                        </button>
+                    </form>
+                </div>
+            @else
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <form action="{{ route('expense-drafts.index') }}" method="GET">
+                        <button type="submit" class="custom-card w-100">
+                            <img src="https://img.icons8.com/ios/50/money-transfer.png" alt="icon">
+                            <span>مصروفات</span>
+                        </button>
+                    </form>
+                </div>
+            @endif
         </div>
+        
     </main>
 
   

@@ -6,7 +6,7 @@
         <div class="row g-4 justify-content-center">
 
             <div class="col-12">
-                <form action="{{ route('admin.analytics.index') }}" method="GET">
+                <form action="{{ route('analytics.money') }}" method="GET">
                     <button type="submit" class="custom-card">
                         التحليل
                     </button>

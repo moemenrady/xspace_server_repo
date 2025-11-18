@@ -5,61 +5,49 @@
 @section('content')
     <div class="page-container">
     @section('page_title')
-        <h1 class="title">📅 إدارة الحجوزات</h1>    @endsection
-        @if (session('success'))
-            <script>
-                document.addEventListener("DOMContentLoaded", () => {
-                    showSnackbar("{{ session('success') }}", "success");
-                });
-            </script>
-        @endif
+    <h1 class="title">📅 إدارة الحجوزات</h1> @endsection
+    @if (session('success'))
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                showSnackbar("{{ session('success') }}", "success");
+            });
+        </script>
+    @endif
 
-        @if (session('error'))
-            <script>
-                document.addEventListener("DOMContentLoaded", () => {
-                    showSnackbar("{{ session('error') }}", "error");
-                });
-            </script>
-        @endif
-        <div class="page-actions">
-            <a href="{{ route('bookings.create') }}" class="add-booking-btn" aria-label="اضافة حجز">اضافة حجز</a>
-        </div>
-        {{-- البحث والفلاتر --}}
-        <div class="filters-box card shadow-sm mb-4 p-3">
-            <div class="row g-3 align-items-end">
-                {{-- البحث --}}
-                <div class="col-md-3">
-                    <label class="form-label">🔍 بحث</label>
-                    <input type="text" id="searchBox" class="form-control"
-                        placeholder="اسم الحجز / العميل / الهاتف / ID">
-                </div>
+    @if (session('error'))
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                showSnackbar("{{ session('error') }}", "error");
+            });
+        </script>
+    @endif
+    <div class="page-actions">
+        <a href="{{ route('bookings.create') }}" class="add-booking-btn" aria-label="اضافة حجز">اضافة حجز</a>
+    </div>
+    <div class="filters-box card shadow-sm mb-4 p-3">
+        <div class="row g-3 align-items-end">
 
-                {{-- الفلاتر بالحالة --}}
-                <div class="col-md-5">
-                    <label class="form-label d-block">⚡ الحالة</label>
-                    <div class="d-flex flex-wrap gap-3">
-                        <div class="form-check">
-                            <input class="form-check-input status-filter" type="checkbox" value="scheduled"
-                                id="statusScheduled">
-                            <label class="form-check-label" for="statusScheduled">ليس الآن</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input status-filter" type="checkbox" value="due" id="statusDue">
-                            <label class="form-check-label" for="statusDue">لم يبدأ</label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input status-filter" type="checkbox" value="in_progress"
-                                id="statusInProgress">
-                            <label class="form-check-label" for="statusInProgress">جاري</label>
-                        </div>
-                    </div>
-                </div>
-
-            {{-- التاريخ --}}
-            <div class="col-md-4">
-                <label class="form-label">📆 الفترة</label>
-                <input type="text" id="dateRange" class="form-control" placeholder="اختر من - إلى">
+            {{-- البحث --}}
+            <div class="col-12 col-md-6">
+                <label class="form-label">🔍 بحث</label>
+                <input type="text" id="searchBox" class="form-control form-control-lg"
+                    placeholder="اسم الحجز / العميل / الهاتف / ID">
             </div>
+
+            {{-- الفلاتر بالحالة --}}
+            <div class="col-12 col-md-6">
+                <label class="form-label d-block">⚡ الحالة</label>
+                <div class="d-flex flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-secondary status-filter-btn" data-status="scheduled"
+                        data-active="false">ليس الآن</button>
+                    <button type="button" class="btn btn-outline-warning status-filter-btn" data-status="due"
+                        data-active="false">لم يبدأ</button>
+                    <button type="button" class="btn btn-outline-info status-filter-btn" data-status="in_progress"
+                        data-active="false">جاري</button>
+                </div>
+
+            </div>
+
         </div>
     </div>
 
@@ -73,7 +61,8 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         let searchBox = document.getElementById("searchBox");
-        let checkboxes = document.querySelectorAll(".status-filter");
+        let statusButtons = document.querySelectorAll(".status-filter-btn");
+
         let bookingsList = document.getElementById("bookingsList");
         let fromDate = null,
             toDate = null;
@@ -81,21 +70,7 @@
         // route للـ show
         let showRoute = @json(route('bookings.show', ':id'));
 
-        // Flatpickr لتحديد المدى الزمني
-        flatpickr("#dateRange", {
-            mode: "range",
-            dateFormat: "Y-m-d",
 
-            onChange: function(selectedDates) {
-                if (selectedDates.length === 2) {
-                    fromDate = selectedDates[0].toISOString().split('T')[0];
-                    toDate = selectedDates[1].toISOString().split('T')[0];
-                } else {
-                    fromDate = toDate = null;
-                }
-                fetchBookings();
-            }
-        });
 
         function formatDateTime(dateStr) {
             if (!dateStr) return "-";
@@ -111,31 +86,27 @@
 
         function fetchBookings() {
             let q = searchBox.value || '';
-            let statuses = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+
+            // نجيب الأزرار المفعل عليها فقط
+            let activeStatuses = Array.from(statusButtons)
+                .filter(btn => btn.dataset.active === "true")
+                .map(btn => btn.dataset.status);
 
             let params = new URLSearchParams({
                 q
             });
             if (fromDate) params.append("from", fromDate);
             if (toDate) params.append("to", toDate);
-            statuses.forEach(s => params.append("statuses[]", s));
-
-            // Debug: تحقق من الرابط قبل الطلب
-            console.log("Fetching bookings with params:", params.toString());
+            activeStatuses.forEach(s => params.append("statuses[]", s));
 
             fetch("{{ route('bookings.ajaxSearchManager') }}?" + params.toString())
                 .then(res => res.json())
-
                 .then(data => {
-                    console.log("Received data:", data);
                     bookingsList.innerHTML = "";
-
-                    // إذا data مش array، حوّلها إلى array
                     let bookingsArray = Array.isArray(data) ? data : Object.values(data);
 
                     if (!bookingsArray.length) {
                         bookingsList.innerHTML = `<p class="no-results">❌ لا توجد نتائج</p>`;
-                        if (data.error) console.error("Server error:", data.error);
                         return;
                     }
 
@@ -145,38 +116,45 @@
                             actionBtns =
                                 `<a href="/bookings/${b.id}/edit" class="btn btn-sm btn-outline-primary">✏️ تعديل</a>`;
                         }
-
-                        // حساب يوم الأسبوع باللهجة المصرية (0 = الأحد)
                         const weekdayNames = ['الحد', 'الاتنين', 'التلات', 'الأربع', 'الخميس',
                             'الجمعة', 'السبت'
                         ];
                         const startDate = new Date(b.start_at);
                         const weekdayLabel = weekdayNames[startDate.getDay()];
 
-                        bookingsList.innerHTML += `
-        <div class="booking-card" onclick="window.location.href='${showRoute.replace(':id', b.id)}'" style="cursor:pointer;">
-            <div class="info">
-                <h3>${b.title}</h3>
-                <p>👤 ${b.client_name || '-'} | 📞 ${b.client_phone || '-'}</p>
-                <p>🏛️ ${b.hall_name || '-'} | 👥 ${b.attendees || 0}</p>
-                <!-- هنا نعرض يوم الأسبوع -->
-                <p class="weekday">📅 ${weekdayLabel}</p>
-                <p>⏰ من: ${formatDateTime(b.start_at)} <br> إلى: ${formatDateTime(b.end_at)}</p>
-            </div>
-            <div class="meta">
-                <span class="badge bg-${statusColor(b.status)}">${statusLabel(b.status)}</span>
-                <p class="mt-2">💰 ${parseFloat(b.estimated_total).toFixed(2)}</p>
-                <div class="actions mt-2">${actionBtns}</div>
-            </div>
-        </div>
-    `;
+                      bookingsList.innerHTML += `
+<div class="booking-card" onclick="window.location.href='${showRoute.replace(':id', b.id)}'" style="cursor:pointer; position: relative;">
+
+    <!-- وقت البدء في كونتينر أزرق أعلى الكرت -->
+    <div class="booking-time">
+        ${formatTime12(b.start_at)}
+    </div>
+
+    <div class="info">
+        <h3>👤 <strong>${b.client_name || '-'}</strong></h3>
+        <p>🏛️ ${b.hall_name || '-'}</p>
+        <p class="weekday">📅 ${weekdayLabel} / ${formatDayMonth(b.start_at)}</p>
+    </div>
+
+    <div class="meta">
+        <span class="badge bg-${statusColor(b.status)}">${statusLabel(b.status)}</span>
+        <p class="mt-2">💰 ${parseFloat(b.estimated_total).toFixed(2)}</p>
+        <div class="actions mt-2">${actionBtns}</div>
+    </div>
+</div>`;
+
                     });
                 })
-
                 .catch(err => {
-                    console.error("Error fetching bookings:", err);
                     bookingsList.innerHTML = `<p class="no-results">❌ حدث خطأ أثناء جلب البيانات</p>`;
+                    console.error(err);
                 });
+        }
+
+        function formatDayMonth(dateStr) {
+            if (!dateStr) return "-";
+            let d = new Date(dateStr);
+            return `${d.getDate()} / ${d.getMonth() + 1}`; // اليوم / الشهر
         }
 
         function statusColor(status) {
@@ -195,6 +173,16 @@
                     return "dark";
             }
         }
+function formatTime12(dateStr) {
+    if (!dateStr) return "-";
+    let d = new Date(dateStr);
+    let hours = d.getHours();
+    let minutes = d.getMinutes().toString().padStart(2, '0');
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // ساعة 0 تصبح 12
+    return `${hours}:${minutes} ${ampm}`;
+}
 
         function statusLabel(status) {
             switch (status) {
@@ -214,7 +202,19 @@
         }
 
         searchBox.addEventListener("keyup", fetchBookings);
-        checkboxes.forEach(cb => cb.addEventListener("change", fetchBookings));
+        statusButtons.forEach(btn => {
+            btn.addEventListener("click", () => {
+                // toggle حالة الزر
+                if (btn.dataset.active === "true") {
+                    btn.dataset.active = "false";
+                    btn.classList.remove("active");
+                } else {
+                    btn.dataset.active = "true";
+                    btn.classList.add("active");
+                }
+                fetchBookings(); // جلب النتائج بعد التغيير
+            });
+        });
 
         fetchBookings(); // تحميل أولي
     });
@@ -278,6 +278,13 @@
         z-index: 1000;
     }
 
+    .status-filter-btn.active {
+        color: #fff !important;
+        background-color: currentColor;
+        /* سيأخذ لون الزر الأساسي */
+        border-color: currentColor;
+    }
+
     .add-booking-btn {
         position: relative;
         display: inline-block;
@@ -315,6 +322,19 @@
         box-shadow: 0 10px 22px rgba(0, 0, 0, .16), inset 0 -2px 0 rgba(0, 0, 0, .05);
         border-color: #e9c94e;
     }
+.booking-time {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background-color: #007bff; /* أزرق */
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    z-index: 10;
+}
 
     .booking-card .weekday {
         font-weight: 600;
@@ -382,26 +402,26 @@
         font-size: 14px;
     }
 
-        .booking-card .info h3 {
-            margin: 0 0 5px;
-            font-size: 16px;
-            color: #333;
-        }
+    .booking-card .info h3 {
+        margin: 0 0 5px;
+        font-size: 16px;
+        color: #333;
+    }
 
-        .booking-card .meta {
-            flex: 1;
-            text-align: right;
-            font-size: 13px;
-        }
+    .booking-card .meta {
+        flex: 1;
+        text-align: right;
+        font-size: 13px;
+    }
 
-        .booking-card .actions a {
-            display: block;
-            margin-bottom: 4px;
-        }
+    .booking-card .actions a {
+        display: block;
+        margin-bottom: 4px;
+    }
 
-        .no-results {
-            text-align: center;
-            color: #888;
-        }
-    </style>
+    .no-results {
+        text-align: center;
+        color: #888;
+    }
+</style>
 @endsection
